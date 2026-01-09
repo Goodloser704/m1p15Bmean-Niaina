@@ -1,0 +1,36 @@
+Ce qui est déjà en place 
+
+- Backend Express + Mongo (Mongoose) en JavaScript avec JWT + rôles ( client , mechanic , manager ) : server.js , auth middleware
+- API pour véhicules, rendez-vous, ordres de réparation + liste des utilisateurs (manager) : app.js
+- Frontend Angular (nom projet déjà m1p12mean-xxx-yyy ) avec routes + guards + pages par rôle : app.routes.ts , auth guards
+Fonctionnalités par profil
+
+- Client : ajouter/lister ses véhicules, demander un rendez-vous, voir l’historique/statut : ClientVehiclesPage , ClientAppointmentsPage
+- Mécanicien : voir ses rendez-vous assignés, changer le statut + note, éditer les tâches d’un ordre : MechanicAppointmentsPage , MechanicWorkOrdersPage
+- Manager : voir tous les rendez-vous, confirmer/planifier + assigner un mécanicien, créer/valider un ordre, voir les véhicules : ManagerAppointmentsPage , ManagerWorkOrdersPage
+Logins par défaut (pré-remplis dans le formulaire)
+
+- client@demo.com / client123
+- mechanic@demo.com / mechanic123
+- manager@demo.com / manager123 Page : LoginPage Seed backend : seed.js
+Lancer en local
+
+- Backend :
+  - Créer backend/.env à partir de .env.example (Mongo + JWT_SECRET)
+  - cd backend && npm run seed puis npm run dev
+- Frontend :
+  - cd frontend && npm start (API configurée sur http://localhost:3000 : api.config.ts )
+À personnaliser pour respecter l’énoncé
+
+- Remplacer xxx-yyy par vos prénoms (nom projet + UI) : app.component.ts
+- Mettre vos noms/prénoms complets dans le footer (actuellement placeholders) : app.component.ts
+Vérification
+
+- frontend : npm run build OK (build + typecheck). Aucun script lint n’est présent par défaut dans ce projet Angular.
+Déploiement (recommandation simple)
+
+- MongoDB : MongoDB Atlas
+- Backend Express : Render / Fly.io (variables d’env: MONGODB_URI , JWT_SECRET , CORS_ORIGIN )
+- Frontend Angular : Netlify / Vercel (build npm run build , publier dist/... )
+
+Envoi sur git jour 1
