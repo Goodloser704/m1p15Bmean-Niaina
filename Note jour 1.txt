@@ -33,4 +33,4 @@ Déploiement (recommandation simple)
 - Backend Express : Render / Fly.io (variables d’env: MONGODB_URI , JWT_SECRET , CORS_ORIGIN )
 - Frontend Angular : Netlify / Vercel (build npm run build , publier dist/... )
 
-Envoi sur git jour 1
+Envoi sur git jour 1 Ps email :faustresilient@gmail.com
