@@ -17,8 +17,7 @@ import { AuthService } from '../../core/auth/auth.service';
         <a class="tile" *ngIf="u.role === 'client'" routerLink="/client/appointments">Mes rendez-vous</a>
         <a class="tile" *ngIf="u.role === 'client'" routerLink="/client/workorders">Mes estimations</a>
 
-        <a class="tile" *ngIf="u.role === 'mechanic'" routerLink="/mechanic/appointments">Mes rendez-vous</a>
-        <a class="tile" *ngIf="u.role === 'mechanic'" routerLink="/mechanic/workorders">Ordres de réparation</a>
+        <a class="tile" *ngIf="u.role === 'mechanic'" routerLink="/mechanic/workorders">Estimations et réparations</a>
 
         <a class="tile" *ngIf="u.role === 'manager'" routerLink="/manager/appointments">Rendez-vous</a>
         <a class="tile" *ngIf="u.role === 'manager'" routerLink="/manager/workorders">Ordres de réparation</a>

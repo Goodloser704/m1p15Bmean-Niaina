@@ -33,13 +33,21 @@ export class AppointmentsService {
   }
 
   async setStatus(id: string, status: AppointmentStatus, mechanicNote?: string): Promise<Appointment> {
-    const res = await firstValueFrom(
-      this.http.patch<{ appointment: Appointment }>(`${API_BASE_URL}/api/appointments/${id}/status`, {
-        status,
-        mechanicNote
-      })
-    );
-    return res.appointment;
+    try {
+      const res = await firstValueFrom(
+        this.http.patch<{ appointment: Appointment }>(`${API_BASE_URL}/api/appointments/${id}/status`, {
+          status,
+          mechanicNote
+        })
+      );
+      return res.appointment;
+    } catch (error: any) {
+      // Propager l'erreur avec le message du serveur
+      if (error.error?.message) {
+        throw new Error(error.error.message);
+      }
+      throw error;
+    }
   }
 }
 

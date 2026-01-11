@@ -1,6 +1,7 @@
 const express = require("express");
 const Appointment = require("../models/Appointment");
 const Vehicle = require("../models/Vehicle");
+const WorkOrder = require("../models/WorkOrder");
 const { requireAuth, requireRole } = require("../middleware/auth");
 
 const router = express.Router();
@@ -46,23 +47,40 @@ router.patch("/:id/confirm", requireAuth, requireRole("manager"), async (req, re
 });
 
 router.patch("/:id/status", requireAuth, requireRole(["mechanic", "manager"]), async (req, res) => {
-  const { id } = req.params;
-  const { status, mechanicNote } = req.body || {};
-  const allowed = ["in_progress", "done", "canceled"];
-  if (!allowed.includes(status)) return res.status(400).json({ message: "Invalid status" });
+  try {
+    const { id } = req.params;
+    const { status, mechanicNote } = req.body || {};
+    const allowed = ["in_progress", "done", "canceled"];
+    if (!allowed.includes(status)) return res.status(400).json({ message: "Invalid status" });
 
-  const appointment = await Appointment.findById(id);
-  if (!appointment) return res.status(404).json({ message: "Appointment not found" });
+    const appointment = await Appointment.findById(id);
+    if (!appointment) return res.status(404).json({ message: "Appointment not found" });
 
-  if (req.user.role === "mechanic" && String(appointment.mechanicId || "") !== String(req.user._id)) {
-    return res.status(403).json({ message: "Forbidden" });
+    if (req.user.role === "mechanic" && String(appointment.mechanicId || "") !== String(req.user._id)) {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+
+    // SÉCURITÉ : Vérifier que le work order est approuvé avant de marquer "done"
+    if (status === "done" && req.user.role === "mechanic") {
+      const workOrder = await WorkOrder.findOne({ appointmentId: appointment._id });
+      if (workOrder) {
+        if (workOrder.status !== "approved") {
+          return res.status(400).json({ 
+            message: "Cannot complete repair: work order must be approved by client first. Current status: " + workOrder.status 
+          });
+        }
+      }
+    }
+
+    appointment.status = status;
+    if (mechanicNote !== undefined) appointment.mechanicNote = mechanicNote;
+    await appointment.save();
+
+    return res.json({ appointment });
+  } catch (error) {
+    console.error("❌ Error updating appointment status:", error);
+    return res.status(500).json({ message: "Internal server error" });
   }
-
-  appointment.status = status;
-  if (mechanicNote !== undefined) appointment.mechanicNote = mechanicNote;
-  await appointment.save();
-
-  return res.json({ appointment });
 });
 
 module.exports = router;

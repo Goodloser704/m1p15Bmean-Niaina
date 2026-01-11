@@ -111,10 +111,13 @@ import type { WorkOrder, Appointment, User, Vehicle, WorkOrderTask } from '../..
                   Valider
                 </button>
                 <span *ngIf="w.status === 'pending_client_approval'" class="waiting">
-                  En attente client
+                  ⏳ En attente client
                 </span>
                 <span *ngIf="w.status === 'rejected'" class="rejected">
-                  Refusé
+                  ❌ Refusé par client
+                </span>
+                <span *ngIf="w.status === 'validated'" class="validated">
+                  ✅ Validé
                 </span>
               </td>
             </tr>
@@ -327,6 +330,11 @@ import type { WorkOrder, Appointment, User, Vehicle, WorkOrderTask } from '../..
       }
       .rejected {
         color: #f44336;
+        font-style: italic;
+        font-size: 12px;
+      }
+      .validated {
+        color: #4caf50;
         font-style: italic;
         font-size: 12px;
       }

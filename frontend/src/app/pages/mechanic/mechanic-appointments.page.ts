@@ -85,6 +85,7 @@ import type { Appointment, WorkOrder, WorkOrderTask } from '../../core/models';
               <th>Véhicule</th>
               <th>Estimation</th>
               <th>Statut client</th>
+              <th>Statut rendez-vous</th>
               <th>Action</th>
             </tr>
           </thead>
@@ -96,13 +97,70 @@ import type { Appointment, WorkOrder, WorkOrderTask } from '../../core/models';
                 <span class="status status-approved">Approuvé</span>
               </td>
               <td>
-                <button (click)="startRepair(w.appointmentId)" [disabled]="processing()">
+                <span class="status" [class]="'status-' + getAppointmentStatus(w.appointmentId)">
+                  {{ getAppointmentStatus(w.appointmentId) }}
+                </span>
+              </td>
+              <td>
+                <button 
+                  *ngIf="getAppointmentStatus(w.appointmentId) === 'confirmed'" 
+                  (click)="startRepair(w.appointmentId)" 
+                  [disabled]="processing()">
                   Commencer réparation
                 </button>
+                <button 
+                  *ngIf="getAppointmentStatus(w.appointmentId) === 'in_progress'" 
+                  (click)="finishRepair(w.appointmentId)" 
+                  [disabled]="processing()">
+                  Terminer réparation
+                </button>
+                <span 
+                  *ngIf="getAppointmentStatus(w.appointmentId) === 'done'" 
+                  class="completed">
+                  ✓ Terminé
+                </span>
               </td>
             </tr>
           </tbody>
         </table>
+        <p *ngIf="approvedWorkOrders().length === 0" class="info">
+          Aucune réparation autorisée pour le moment.
+        </p>
+      </div>
+
+      <!-- Réparations en attente d'approbation -->
+      <div class="card">
+        <h3>En attente d'approbation client</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Véhicule</th>
+              <th>Estimation</th>
+              <th>Statut</th>
+              <th>Info</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let w of pendingWorkOrders()">
+              <td>{{ w.appointmentId.substring(0, 8) }}...</td>
+              <td>{{ w.total }}€</td>
+              <td>
+                <span class="status status-pending">{{ getStatusLabel(w.status) }}</span>
+              </td>
+              <td class="info-text">
+                <span *ngIf="w.status === 'pending_client_approval'">
+                  Le client examine votre estimation
+                </span>
+                <span *ngIf="w.status === 'rejected'" class="rejected">
+                  Estimation refusée par le client
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <p *ngIf="pendingWorkOrders().length === 0" class="info">
+          Aucune estimation en attente.
+        </p>
       </div>
 
       <!-- Modal d'estimation -->
@@ -221,6 +279,34 @@ import type { Appointment, WorkOrder, WorkOrderTask } from '../../core/models';
       .status-approved {
         background: #e8f5e8;
         color: #2e7d32;
+      }
+      .status-pending {
+        background: #fff3e0;
+        color: #e65100;
+      }
+      .status-confirmed {
+        background: #e3f2fd;
+        color: #1976d2;
+      }
+      .status-in_progress {
+        background: #fff3e0;
+        color: #f57c00;
+      }
+      .status-done {
+        background: #e8f5e8;
+        color: #388e3c;
+      }
+      .completed {
+        color: #4caf50;
+        font-weight: 600;
+      }
+      .rejected {
+        color: #f44336;
+        font-weight: 500;
+      }
+      .info-text {
+        font-size: 12px;
+        font-style: italic;
       }
       .modal {
         position: fixed;
@@ -371,6 +457,27 @@ export class MechanicWorkOrdersPageComponent {
     return this.workOrders().filter(wo => wo.status === 'approved');
   }
 
+  // Work orders en attente ou refusés
+  pendingWorkOrders() {
+    return this.workOrders().filter(wo => 
+      ['pending_client_approval', 'rejected'].includes(wo.status)
+    );
+  }
+
+  getAppointmentStatus(appointmentId: string): string {
+    const appointment = this.appointments().find(a => a._id === appointmentId);
+    return appointment ? appointment.status : 'unknown';
+  }
+
+  getStatusLabel(status: string): string {
+    const labels = {
+      'pending_client_approval': 'En attente client',
+      'rejected': 'Refusé',
+      'approved': 'Approuvé'
+    };
+    return labels[status as keyof typeof labels] || status;
+  }
+
   async startDiagnostic(appointmentId: string): Promise<void> {
     this.processing.set(true);
     this.error.set(null);
@@ -459,6 +566,25 @@ export class MechanicWorkOrdersPageComponent {
       await this.refresh();
     } catch (error: any) {
       this.error.set(error.message || 'Erreur lors du démarrage de la réparation');
+    } finally {
+      this.processing.set(false);
+    }
+  }
+
+  async finishRepair(appointmentId: string): Promise<void> {
+    this.processing.set(true);
+    this.error.set(null);
+    
+    try {
+      await this.appointmentsService.setStatus(appointmentId, 'done', 'Réparation terminée');
+      this.success.set('Réparation terminée avec succès !');
+      await this.refresh();
+    } catch (error: any) {
+      if (error.message?.includes('must be approved')) {
+        this.error.set('Impossible de terminer : l\'estimation doit être approuvée par le client');
+      } else {
+        this.error.set(error.message || 'Erreur lors de la finalisation');
+      }
     } finally {
       this.processing.set(false);
     }
