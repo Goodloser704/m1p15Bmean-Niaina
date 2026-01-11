@@ -30,7 +30,7 @@ import type { WorkOrder, Appointment, User, Vehicle } from '../../core/models';
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let a of availableAppointments()">
+            <tr *ngFor="let a of availableAppointments(); trackBy: trackByAppointmentId">
               <td>{{ a.scheduledAt ? (a.scheduledAt | date : 'short') : '-' }}</td>
               <td>{{ getUserName(a.clientId) }}</td>
               <td>{{ getVehicleInfo(a.vehicleId) }}</td>
@@ -40,6 +40,7 @@ import type { WorkOrder, Appointment, User, Vehicle } from '../../core/models';
                 <button (click)="createForAppointment(a._id)" [disabled]="creating()">
                   Créer ordre
                 </button>
+                <small class="debug">ID: {{ a._id.substring(0, 8) }}...</small>
               </td>
             </tr>
           </tbody>
@@ -172,6 +173,12 @@ import type { WorkOrder, Appointment, User, Vehicle } from '../../core/models';
         font-style: italic;
         margin: 8px 0;
       }
+      .debug {
+        display: block;
+        font-size: 10px;
+        color: #999;
+        margin-top: 2px;
+      }
     `
   ]
 })
@@ -236,7 +243,17 @@ export class ManagerWorkOrdersPageComponent {
     return vehicle ? `${vehicle.make} ${vehicle.model} (${vehicle.plate})` : 'Véhicule inconnu';
   }
 
+  trackByAppointmentId(index: number, appointment: Appointment): string {
+    return appointment._id;
+  }
+
   async createForAppointment(appointmentId: string): Promise<void> {
+    // Validation de l'appointmentId
+    if (!appointmentId || appointmentId.length !== 24) {
+      this.error.set('ID de rendez-vous invalide');
+      return;
+    }
+
     this.creating.set(true);
     this.error.set(null);
     this.success.set(null);
@@ -247,7 +264,17 @@ export class ManagerWorkOrdersPageComponent {
       await this.refresh();
     } catch (error: any) {
       console.error('❌ Error creating work order:', error);
-      this.error.set(error.message || "Création impossible (vérifiez l'appointmentId)");
+      
+      // Gestion spécifique des erreurs
+      if (error.status === 400) {
+        this.error.set('Données invalides. Vérifiez le rendez-vous sélectionné.');
+      } else if (error.status === 404) {
+        this.error.set('Rendez-vous non trouvé.');
+      } else if (error.status === 409) {
+        this.error.set('Un ordre de réparation existe déjà pour ce rendez-vous.');
+      } else {
+        this.error.set(error.message || "Création impossible");
+      }
     } finally {
       this.creating.set(false);
     }

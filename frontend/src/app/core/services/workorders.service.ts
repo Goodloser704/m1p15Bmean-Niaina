@@ -18,6 +18,12 @@ export class WorkOrdersService {
   async create(appointmentId: string): Promise<WorkOrder> {
     try {
       console.log('🔄 Creating work order for appointment:', appointmentId);
+      
+      // Validation côté client
+      if (!appointmentId || typeof appointmentId !== 'string' || appointmentId.length !== 24) {
+        throw new Error('ID de rendez-vous invalide');
+      }
+      
       const res = await firstValueFrom(
         this.http.post<{ workOrder: WorkOrder }>(`${API_BASE_URL}/api/workorders`, { appointmentId })
       );
@@ -25,12 +31,24 @@ export class WorkOrdersService {
       return res.workOrder;
     } catch (error: any) {
       console.error('❌ Error creating work order:', error);
+      
       if (error.status === 0) {
         throw new Error('Impossible de contacter le serveur. Vérifiez votre connexion.');
       }
       if (error.status === 502) {
         throw new Error('Le serveur est temporairement indisponible. Réessayez dans quelques minutes.');
       }
+      if (error.status === 400) {
+        const message = error.error?.message || 'Données invalides';
+        throw new Error(message);
+      }
+      if (error.status === 404) {
+        throw new Error('Rendez-vous non trouvé');
+      }
+      if (error.status === 409) {
+        throw new Error('Un ordre de réparation existe déjà pour ce rendez-vous');
+      }
+      
       throw error;
     }
   }

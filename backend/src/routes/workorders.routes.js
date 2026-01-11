@@ -1,4 +1,5 @@
 const express = require("express");
+const mongoose = require("mongoose");
 const WorkOrder = require("../models/WorkOrder");
 const Appointment = require("../models/Appointment");
 const { requireAuth, requireRole } = require("../middleware/auth");
@@ -17,13 +18,25 @@ router.post("/", requireAuth, requireRole(["mechanic", "manager"]), async (req, 
   try {
     console.log("📝 Creating work order:", req.body);
     const { appointmentId } = req.body || {};
-    if (!appointmentId) return res.status(400).json({ message: "appointmentId is required" });
+    
+    // Validation de l'appointmentId
+    if (!appointmentId) {
+      return res.status(400).json({ message: "appointmentId is required" });
+    }
+    
+    if (!mongoose.Types.ObjectId.isValid(appointmentId)) {
+      return res.status(400).json({ message: "Invalid appointmentId format" });
+    }
 
     const appointment = await Appointment.findById(appointmentId);
-    if (!appointment) return res.status(404).json({ message: "Appointment not found" });
+    if (!appointment) {
+      return res.status(404).json({ message: "Appointment not found" });
+    }
 
     const existing = await WorkOrder.findOne({ appointmentId: appointment._id });
-    if (existing) return res.status(409).json({ message: "Work order already exists" });
+    if (existing) {
+      return res.status(409).json({ message: "Work order already exists for this appointment" });
+    }
 
     const workOrder = await WorkOrder.create({
       appointmentId: appointment._id,
@@ -34,6 +47,12 @@ router.post("/", requireAuth, requireRole(["mechanic", "manager"]), async (req, 
     return res.status(201).json({ workOrder });
   } catch (error) {
     console.error("❌ Error creating work order:", error);
+    
+    // Gestion spécifique des erreurs de cast MongoDB
+    if (error.name === 'CastError') {
+      return res.status(400).json({ message: "Invalid ID format" });
+    }
+    
     return res.status(500).json({ message: "Internal server error" });
   }
 });
