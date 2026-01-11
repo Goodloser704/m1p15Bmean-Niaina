@@ -30,11 +30,18 @@ export interface Appointment {
   mechanicId?: string;
 }
 
-export type WorkOrderStatus = 'draft' | 'validated' | 'paid';
+export type WorkOrderStatus = 'draft' | 'estimated' | 'pending_client_approval' | 'approved' | 'rejected' | 'validated' | 'paid';
 
 export interface WorkOrderTask {
   label: string;
   price: number;
+}
+
+export interface WorkOrderMessage {
+  _id: string;
+  sender: 'client' | 'manager' | 'mechanic';
+  message: string;
+  createdAt: string;
 }
 
 export interface WorkOrder {
@@ -44,5 +51,9 @@ export interface WorkOrder {
   status: WorkOrderStatus;
   tasks: WorkOrderTask[];
   total?: number;
+  estimationNote?: string;
+  clientApproved?: boolean;
+  clientNote?: string;
+  messages?: WorkOrderMessage[];
 }
 

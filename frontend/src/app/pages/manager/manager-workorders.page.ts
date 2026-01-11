@@ -73,9 +73,18 @@ import type { WorkOrder, Appointment, User, Vehicle } from '../../core/models';
               <td>{{ (w.tasks || []).length }} tâche(s)</td>
               <td>{{ (w.total || 0) }}€</td>
               <td class="actions">
-                <button (click)="validate(w._id)" [disabled]="w.status !== 'draft'">
+                <button *ngIf="w.status === 'estimated'" (click)="reviewEstimation(w._id)">
+                  Réviser
+                </button>
+                <button *ngIf="w.status === 'approved'" (click)="validate(w._id)">
                   Valider
                 </button>
+                <span *ngIf="w.status === 'pending_client_approval'" class="waiting">
+                  En attente client
+                </span>
+                <span *ngIf="w.status === 'rejected'" class="rejected">
+                  Refusé
+                </span>
               </td>
             </tr>
           </tbody>
@@ -154,9 +163,31 @@ import type { WorkOrder, Appointment, User, Vehicle } from '../../core/models';
         background: #d4edda;
         color: #155724;
       }
-      .status-paid {
-        background: #d1ecf1;
-        color: #0c5460;
+      .status-estimated {
+        background: #e1f5fe;
+        color: #01579b;
+      }
+      .status-pending_client_approval {
+        background: #fff3e0;
+        color: #e65100;
+      }
+      .status-approved {
+        background: #e8f5e8;
+        color: #2e7d32;
+      }
+      .status-rejected {
+        background: #ffebee;
+        color: #c62828;
+      }
+      .waiting {
+        color: #ff9800;
+        font-style: italic;
+        font-size: 12px;
+      }
+      .rejected {
+        color: #f44336;
+        font-style: italic;
+        font-size: 12px;
       }
       .error {
         margin-top: 10px;
@@ -289,6 +320,23 @@ export class ManagerWorkOrdersPageComponent {
       await this.refresh();
     } catch (error: any) {
       this.error.set(error.message || 'Validation impossible');
+    }
+  }
+
+  async reviewEstimation(id: string): Promise<void> {
+    this.error.set(null);
+    this.success.set(null);
+    try {
+      // Pour l'instant, on envoie directement au client
+      // Plus tard, on pourra ajouter une interface pour modifier les prix
+      const workOrder = this.workOrders().find(w => w._id === id);
+      if (workOrder) {
+        await this.workOrdersService.managerReview(id, workOrder.tasks, 'send_to_client');
+        this.success.set('Estimation envoyée au client pour approbation !');
+        await this.refresh();
+      }
+    } catch (error: any) {
+      this.error.set(error.message || 'Erreur lors de la révision');
     }
   }
 }

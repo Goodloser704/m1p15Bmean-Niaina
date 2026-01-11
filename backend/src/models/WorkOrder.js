@@ -8,12 +8,29 @@ const workOrderTaskSchema = new mongoose.Schema(
   { _id: false }
 );
 
+const workOrderMessageSchema = new mongoose.Schema(
+  {
+    sender: { type: String, required: true, enum: ["client", "manager", "mechanic"] },
+    message: { type: String, required: true, trim: true }
+  },
+  { timestamps: true }
+);
+
 const workOrderSchema = new mongoose.Schema(
   {
     appointmentId: { type: mongoose.Schema.Types.ObjectId, ref: "Appointment", required: true, unique: true },
     mechanicId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-    status: { type: String, required: true, enum: ["draft", "validated", "paid"], default: "draft" },
-    tasks: { type: [workOrderTaskSchema], default: [] }
+    status: { 
+      type: String, 
+      required: true, 
+      enum: ["draft", "estimated", "pending_client_approval", "approved", "rejected", "validated", "paid"], 
+      default: "draft" 
+    },
+    tasks: { type: [workOrderTaskSchema], default: [] },
+    estimationNote: { type: String, trim: true },
+    clientApproved: { type: Boolean },
+    clientNote: { type: String, trim: true },
+    messages: { type: [workOrderMessageSchema], default: [] }
   },
   { timestamps: true }
 );

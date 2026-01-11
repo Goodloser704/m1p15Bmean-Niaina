@@ -61,6 +61,41 @@ export class WorkOrdersService {
     );
   }
 
+  async updateEstimation(id: string, tasks: WorkOrderTask[], estimationNote?: string): Promise<{ workOrder: WorkOrder; total: number }> {
+    return await firstValueFrom(
+      this.http.patch<{ workOrder: WorkOrder; total: number }>(`${API_BASE_URL}/api/workorders/${id}/estimate`, {
+        tasks,
+        estimationNote
+      })
+    );
+  }
+
+  async managerReview(id: string, tasks: WorkOrderTask[], action: 'send_to_client' | 'request_changes'): Promise<{ workOrder: WorkOrder; total: number }> {
+    return await firstValueFrom(
+      this.http.patch<{ workOrder: WorkOrder; total: number }>(`${API_BASE_URL}/api/workorders/${id}/manager-review`, {
+        tasks,
+        action
+      })
+    );
+  }
+
+  async addMessage(id: string, message: string): Promise<WorkOrder> {
+    const res = await firstValueFrom(
+      this.http.post<{ workOrder: WorkOrder }>(`${API_BASE_URL}/api/workorders/${id}/messages`, { message })
+    );
+    return res.workOrder;
+  }
+
+  async clientDecision(id: string, approved: boolean, clientNote?: string): Promise<WorkOrder> {
+    const res = await firstValueFrom(
+      this.http.patch<{ workOrder: WorkOrder }>(`${API_BASE_URL}/api/workorders/${id}/client-decision`, {
+        approved,
+        clientNote
+      })
+    );
+    return res.workOrder;
+  }
+
   async validate(id: string): Promise<WorkOrder> {
     const res = await firstValueFrom(
       this.http.patch<{ workOrder: WorkOrder }>(`${API_BASE_URL}/api/workorders/${id}/validate`, {})
