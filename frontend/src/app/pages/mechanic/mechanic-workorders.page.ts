@@ -488,34 +488,17 @@ export class MechanicWorkOrdersPageComponent {
 
   async refresh(): Promise<void> {
     try {
-      console.log('🔄 Mécanicien - Chargement des données...');
-      const [appointments, workOrders, vehicles, users] = await Promise.all([
+      const [appointments, workOrders, vehicles] = await Promise.all([
         this.appointmentsService.list(),
         this.workOrdersService.list(),
-        this.vehiclesService.list(),
-        this.usersService.list()
+        this.vehiclesService.list()
       ]);
-      
-      console.log('📊 DONNÉES REÇUES DU SERVEUR:');
-      console.log('📅 Rendez-vous reçus:', appointments.length);
-      appointments.forEach((apt, i) => {
-        console.log(`  ${i + 1}. ${apt._id} - Status: ${apt.status} - Mechanic: ${apt.mechanicId || 'none'} - Note: ${apt.clientNote || 'none'}`);
-      });
-      
-      console.log('🔧 Work orders reçus:', workOrders.length);
-      workOrders.forEach((wo, i) => {
-        console.log(`  ${i + 1}. ${wo._id} - AppointmentId: ${wo.appointmentId} - Status: ${wo.status}`);
-      });
-      
-      console.log('🚗 Véhicules reçus:', vehicles.length);
-      console.log('👥 Utilisateurs reçus:', users.length);
       
       this.appointments.set(appointments);
       this.workOrders.set(workOrders);
       this.vehicles.set(vehicles);
-      this.users.set(users);
+      this.users.set([]); // Pas besoin des utilisateurs pour le mécanicien
       
-      console.log('✅ Données chargées avec succès - Déclenchement du calcul appointmentsToEstimate()');
     } catch (error) {
       console.error('❌ Erreur lors du chargement:', error);
       this.error.set('Erreur lors du chargement des données');
@@ -528,39 +511,10 @@ export class MechanicWorkOrdersPageComponent {
       this.workOrders().map(wo => wo.appointmentId)
     );
     
-    console.log('🔍 ANALYSE DÉTAILLÉE - appointmentsToEstimate():');
-    console.log('  📊 Données brutes:');
-    console.log('    - Tous les rendez-vous chargés:', this.appointments().length);
-    console.log('    - Work orders chargés:', this.workOrders().length);
-    console.log('    - Work order appointment IDs:', Array.from(existingWorkOrderAppointments));
-    
-    console.log('  📋 Détail des rendez-vous:');
-    this.appointments().forEach((apt, index) => {
-      console.log(`    ${index + 1}. ID: ${apt._id}`);
-      console.log(`       Status: ${apt.status}`);
-      console.log(`       MechanicId: ${apt.mechanicId || 'non assigné'}`);
-      console.log(`       ClientNote: ${apt.clientNote || 'aucune'}`);
-      console.log(`       A un work order: ${existingWorkOrderAppointments.has(apt._id)}`);
-    });
-    
-    const filtered = this.appointments().filter(appointment => {
-      const isConfirmed = appointment.status === 'confirmed';
-      const hasNoWorkOrder = !existingWorkOrderAppointments.has(appointment._id);
-      const shouldShow = isConfirmed && hasNoWorkOrder;
-      
-      console.log(`  🎯 Rendez-vous ${appointment._id}:`);
-      console.log(`     - Confirmé: ${isConfirmed}`);
-      console.log(`     - Pas de work order: ${hasNoWorkOrder}`);
-      console.log(`     - Doit être affiché: ${shouldShow}`);
-      
-      return shouldShow;
-    });
-    
-    console.log('  ✅ RÉSULTAT FINAL:');
-    console.log(`    - Rendez-vous à estimer: ${filtered.length}`);
-    console.log('    - Liste:', filtered.map(a => ({ id: a._id, note: a.clientNote })));
-    
-    return filtered;
+    return this.appointments().filter(appointment => 
+      appointment.status === 'confirmed' && 
+      !existingWorkOrderAppointments.has(appointment._id)
+    );
   }
 
   // Work orders en draft (créés mais pas encore estimés)
@@ -622,6 +576,7 @@ export class MechanicWorkOrdersPageComponent {
       const workOrders = await this.workOrdersService.list();
       console.log('🔧 API WorkOrders - Résultat direct:', workOrders);
       
+      // Test sans les users pour éviter l'erreur 403
       this.success.set(`Test API réussi! Appointments: ${appointments.length}, WorkOrders: ${workOrders.length}`);
     } catch (error: any) {
       console.error('❌ Erreur test API:', error);
