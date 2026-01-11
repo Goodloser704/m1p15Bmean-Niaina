@@ -43,5 +43,6 @@ export interface WorkOrder {
   mechanicId?: string;
   status: WorkOrderStatus;
   tasks: WorkOrderTask[];
+  total?: number;
 }
 

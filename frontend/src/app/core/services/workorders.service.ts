@@ -16,10 +16,23 @@ export class WorkOrdersService {
   }
 
   async create(appointmentId: string): Promise<WorkOrder> {
-    const res = await firstValueFrom(
-      this.http.post<{ workOrder: WorkOrder }>(`${API_BASE_URL}/api/workorders`, { appointmentId })
-    );
-    return res.workOrder;
+    try {
+      console.log('🔄 Creating work order for appointment:', appointmentId);
+      const res = await firstValueFrom(
+        this.http.post<{ workOrder: WorkOrder }>(`${API_BASE_URL}/api/workorders`, { appointmentId })
+      );
+      console.log('✅ Work order created:', res.workOrder);
+      return res.workOrder;
+    } catch (error: any) {
+      console.error('❌ Error creating work order:', error);
+      if (error.status === 0) {
+        throw new Error('Impossible de contacter le serveur. Vérifiez votre connexion.');
+      }
+      if (error.status === 502) {
+        throw new Error('Le serveur est temporairement indisponible. Réessayez dans quelques minutes.');
+      }
+      throw error;
+    }
   }
 
   async updateTasks(id: string, tasks: WorkOrderTask[]): Promise<{ workOrder: WorkOrder; total: number }> {
