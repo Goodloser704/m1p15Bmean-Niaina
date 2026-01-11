@@ -3,7 +3,9 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AppointmentsService } from '../../core/services/appointments.service';
 import { WorkOrdersService } from '../../core/services/workorders.service';
-import type { Appointment, WorkOrder, WorkOrderTask } from '../../core/models';
+import { VehiclesService } from '../../core/services/vehicles.service';
+import { UsersService } from '../../core/services/users.service';
+import type { Appointment, WorkOrder, WorkOrderTask, Vehicle, User } from '../../core/models';
 
 @Component({
   standalone: true,
@@ -28,7 +30,7 @@ import type { Appointment, WorkOrder, WorkOrderTask } from '../../core/models';
           <tbody>
             <tr *ngFor="let a of appointmentsToEstimate()">
               <td>{{ a.scheduledAt ? (a.scheduledAt | date : 'short') : '-' }}</td>
-              <td>{{ a.vehicleId }}</td>
+              <td>{{ getVehicleInfo(a.vehicleId) }}</td>
               <td>{{ a.clientNote || 'Aucune note' }}</td>
               <td>
                 <button (click)="startDiagnostic(a._id)" [disabled]="processing()">
@@ -402,6 +404,8 @@ import type { Appointment, WorkOrder, WorkOrderTask } from '../../core/models';
 export class MechanicWorkOrdersPageComponent {
   appointments = signal<Appointment[]>([]);
   workOrders = signal<WorkOrder[]>([]);
+  vehicles = signal<Vehicle[]>([]);
+  users = signal<User[]>([]);
   processing = signal(false);
   error = signal<string | null>(null);
   success = signal<string | null>(null);
@@ -414,7 +418,9 @@ export class MechanicWorkOrdersPageComponent {
 
   constructor(
     private appointmentsService: AppointmentsService,
-    private workOrdersService: WorkOrdersService
+    private workOrdersService: WorkOrdersService,
+    private vehiclesService: VehiclesService,
+    private usersService: UsersService
   ) {}
 
   async ngOnInit(): Promise<void> {
@@ -423,24 +429,29 @@ export class MechanicWorkOrdersPageComponent {
 
   async refresh(): Promise<void> {
     try {
-      const [appointments, workOrders] = await Promise.all([
+      const [appointments, workOrders, vehicles, users] = await Promise.all([
         this.appointmentsService.list(),
-        this.workOrdersService.list()
+        this.workOrdersService.list(),
+        this.vehiclesService.list(),
+        this.usersService.list()
       ]);
       
       this.appointments.set(appointments);
       this.workOrders.set(workOrders);
+      this.vehicles.set(vehicles);
+      this.users.set(users);
     } catch (error) {
       this.error.set('Erreur lors du chargement des données');
     }
   }
 
-  // Rendez-vous confirmés sans work order
+  // Rendez-vous confirmés assignés au mécanicien connecté sans work order
   appointmentsToEstimate() {
     const existingWorkOrderAppointments = new Set(
       this.workOrders().map(wo => wo.appointmentId)
     );
     
+    // Le mécanicien voit ses rendez-vous confirmés qui n'ont pas encore de work order
     return this.appointments().filter(appointment => 
       appointment.status === 'confirmed' && 
       !existingWorkOrderAppointments.has(appointment._id)
@@ -476,6 +487,17 @@ export class MechanicWorkOrdersPageComponent {
       'approved': 'Approuvé'
     };
     return labels[status as keyof typeof labels] || status;
+  }
+
+  getVehicleInfo(vehicleId: string): string {
+    const vehicle = this.vehicles().find(v => v._id === vehicleId);
+    return vehicle ? `${vehicle.make} ${vehicle.model} (${vehicle.plate})` : 'Véhicule inconnu';
+  }
+
+  getUserName(userId?: string): string {
+    if (!userId) return '';
+    const user = this.users().find(u => u.id === userId);
+    return user ? user.fullName : 'Utilisateur inconnu';
   }
 
   async startDiagnostic(appointmentId: string): Promise<void> {
