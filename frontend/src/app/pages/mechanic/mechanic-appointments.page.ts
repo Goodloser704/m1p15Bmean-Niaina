@@ -13,7 +13,24 @@ import type { Appointment, WorkOrder, WorkOrderTask, Vehicle, User } from '../..
   imports: [CommonModule, FormsModule],
   template: `
     <div class="wrap">
+      <div class="version-indicator">
+        🔧 Interface Mécanicien v2.0 - Nouvelle Version avec Estimations
+      </div>
+      
       <h2>Mes estimations et réparations (mécanicien)</h2>
+
+      <!-- Debug Info -->
+      <div class="debug-card">
+        <h4>🔍 Debug Info (Version de test)</h4>
+        <div class="debug-info">
+          <p><strong>Rendez-vous chargés:</strong> {{ appointments().length }}</p>
+          <p><strong>Work orders chargés:</strong> {{ workOrders().length }}</p>
+          <p><strong>Véhicules chargés:</strong> {{ vehicles().length }}</p>
+          <p><strong>Rendez-vous à estimer:</strong> {{ appointmentsToEstimate().length }}</p>
+          <p><strong>Réparations approuvées:</strong> {{ approvedWorkOrders().length }}</p>
+          <p><strong>En attente approbation:</strong> {{ pendingWorkOrders().length }}</p>
+        </div>
+      </div>
 
       <!-- Rendez-vous en diagnostic -->
       <div class="card">
@@ -222,6 +239,39 @@ import type { Appointment, WorkOrder, WorkOrderTask, Vehicle, User } from '../..
         margin: 16px auto;
         padding: 0 12px;
       }
+      .version-indicator {
+        background: linear-gradient(135deg, #4caf50, #2196f3);
+        color: white;
+        padding: 12px 20px;
+        border-radius: 8px;
+        text-align: center;
+        font-weight: 600;
+        margin-bottom: 16px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      }
+      .debug-card {
+        background: #fff3e0;
+        border: 2px solid #ff9800;
+        border-radius: 8px;
+        padding: 16px;
+        margin-bottom: 16px;
+      }
+      .debug-card h4 {
+        margin: 0 0 12px 0;
+        color: #e65100;
+      }
+      .debug-info {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 8px;
+      }
+      .debug-info p {
+        margin: 4px 0;
+        padding: 8px;
+        background: white;
+        border-radius: 4px;
+        border-left: 4px solid #ff9800;
+      }
       .card {
         margin-top: 12px;
         padding: 12px;
@@ -429,6 +479,7 @@ export class MechanicWorkOrdersPageComponent {
 
   async refresh(): Promise<void> {
     try {
+      console.log('🔄 Mécanicien - Chargement des données...');
       const [appointments, workOrders, vehicles, users] = await Promise.all([
         this.appointmentsService.list(),
         this.workOrdersService.list(),
@@ -436,11 +487,18 @@ export class MechanicWorkOrdersPageComponent {
         this.usersService.list()
       ]);
       
+      console.log('📅 Rendez-vous reçus:', appointments);
+      console.log('🔧 Work orders reçus:', workOrders);
+      console.log('🚗 Véhicules reçus:', vehicles);
+      
       this.appointments.set(appointments);
       this.workOrders.set(workOrders);
       this.vehicles.set(vehicles);
       this.users.set(users);
+      
+      console.log('✅ Données chargées avec succès');
     } catch (error) {
+      console.error('❌ Erreur lors du chargement:', error);
       this.error.set('Erreur lors du chargement des données');
     }
   }
@@ -451,11 +509,18 @@ export class MechanicWorkOrdersPageComponent {
       this.workOrders().map(wo => wo.appointmentId)
     );
     
-    // Le mécanicien voit ses rendez-vous confirmés qui n'ont pas encore de work order
-    return this.appointments().filter(appointment => 
+    const filtered = this.appointments().filter(appointment => 
       appointment.status === 'confirmed' && 
       !existingWorkOrderAppointments.has(appointment._id)
     );
+    
+    console.log('🔍 Filtrage rendez-vous à estimer:');
+    console.log('  - Tous les rendez-vous:', this.appointments().length);
+    console.log('  - Work orders existants:', this.workOrders().length);
+    console.log('  - Rendez-vous confirmés sans work order:', filtered.length);
+    console.log('  - Détail:', filtered);
+    
+    return filtered;
   }
 
   // Work orders en draft (créés mais pas encore estimés)
