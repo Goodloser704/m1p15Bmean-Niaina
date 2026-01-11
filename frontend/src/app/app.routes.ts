@@ -6,7 +6,7 @@ import { LoginPageComponent } from './pages/login/login.page';
 import { DashboardPageComponent } from './pages/dashboard/dashboard.page';
 import { ClientVehiclesPageComponent } from './pages/client/client-vehicles.page';
 import { ClientAppointmentsPageComponent } from './pages/client/client-appointments.page';
-import { MechanicAppointmentsPageComponent } from './pages/mechanic/mechanic-appointments.page';
+import { ClientWorkOrdersPageComponent } from './pages/client/client-workorders.page';
 import { MechanicWorkOrdersPageComponent } from './pages/mechanic/mechanic-workorders.page';
 import { ManagerAppointmentsPageComponent } from './pages/manager/manager-appointments.page';
 import { ManagerWorkOrdersPageComponent } from './pages/manager/manager-workorders.page';
@@ -22,15 +22,15 @@ export const routes: Routes = [
     children: [
       { path: '', pathMatch: 'full', redirectTo: 'vehicles' },
       { path: 'vehicles', component: ClientVehiclesPageComponent },
-      { path: 'appointments', component: ClientAppointmentsPageComponent }
+      { path: 'appointments', component: ClientAppointmentsPageComponent },
+      { path: 'workorders', component: ClientWorkOrdersPageComponent }
     ]
   },
   {
     path: 'mechanic',
     canActivate: [authGuard, roleGuard('mechanic')],
     children: [
-      { path: '', pathMatch: 'full', redirectTo: 'appointments' },
-      { path: 'appointments', component: MechanicAppointmentsPageComponent },
+      { path: '', pathMatch: 'full', redirectTo: 'workorders' },
       { path: 'workorders', component: MechanicWorkOrdersPageComponent }
     ]
   },

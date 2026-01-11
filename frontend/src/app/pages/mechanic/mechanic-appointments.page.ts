@@ -2,54 +2,163 @@ import { Component, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AppointmentsService } from '../../core/services/appointments.service';
-import type { Appointment, AppointmentStatus } from '../../core/models';
+import { WorkOrdersService } from '../../core/services/workorders.service';
+import type { Appointment, WorkOrder, WorkOrderTask } from '../../core/models';
 
 @Component({
   standalone: true,
-  selector: 'app-mechanic-appointments-page',
+  selector: 'app-mechanic-workorders-page',
   imports: [CommonModule, FormsModule],
   template: `
     <div class="wrap">
-      <h2>Mes rendez-vous (mécanicien)</h2>
+      <h2>Mes estimations et réparations (mécanicien)</h2>
+
+      <!-- Rendez-vous en diagnostic -->
       <div class="card">
+        <h3>Rendez-vous à diagnostiquer</h3>
         <table>
           <thead>
             <tr>
-              <th>Statut</th>
               <th>Date</th>
-              <th>Note client</th>
-              <th>Note mécanicien</th>
+              <th>Véhicule</th>
+              <th>Problème signalé</th>
               <th>Action</th>
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let a of appointments()">
-              <td>{{ a.status }}</td>
+            <tr *ngFor="let a of appointmentsToEstimate()">
               <td>{{ a.scheduledAt ? (a.scheduledAt | date : 'short') : '-' }}</td>
-              <td>{{ a.clientNote || '-' }}</td>
+              <td>{{ a.vehicleId }}</td>
+              <td>{{ a.clientNote || 'Aucune note' }}</td>
               <td>
-                <input [(ngModel)]="notes[a._id]" placeholder="Note" />
+                <button (click)="startDiagnostic(a._id)" [disabled]="processing()">
+                  Commencer diagnostic
+                </button>
               </td>
-              <td class="actions">
-                <select [(ngModel)]="nextStatus[a._id]">
-                  <option [ngValue]="''">Choisir</option>
-                  <option [ngValue]="'in_progress'">in_progress</option>
-                  <option [ngValue]="'done'">done</option>
-                  <option [ngValue]="'canceled'">canceled</option>
-                </select>
-                <button (click)="apply(a._id)">Mettre à jour</button>
+            </tr>
+          </tbody>
+        </table>
+        <p *ngIf="appointmentsToEstimate().length === 0" class="info">
+          Aucun rendez-vous à diagnostiquer.
+        </p>
+      </div>
+
+      <!-- Créer des estimations -->
+      <div class="card">
+        <h3>Créer une estimation</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Véhicule</th>
+              <th>Diagnostic</th>
+              <th>Statut</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let w of workOrdersToEstimate()">
+              <td>{{ w.appointmentId.substring(0, 8) }}...</td>
+              <td>
+                <textarea 
+                  [(ngModel)]="estimationNotes[w._id]" 
+                  placeholder="Diagnostic détaillé..."
+                  rows="2">
+                </textarea>
+              </td>
+              <td>{{ w.status }}</td>
+              <td>
+                <button (click)="openEstimationModal(w)" class="estimate-btn">
+                  Créer estimation
+                </button>
               </td>
             </tr>
           </tbody>
         </table>
       </div>
+
+      <!-- Réparations autorisées -->
+      <div class="card">
+        <h3>Réparations autorisées</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Véhicule</th>
+              <th>Estimation</th>
+              <th>Statut client</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let w of approvedWorkOrders()">
+              <td>{{ w.appointmentId.substring(0, 8) }}...</td>
+              <td>{{ w.total }}€</td>
+              <td>
+                <span class="status status-approved">Approuvé</span>
+              </td>
+              <td>
+                <button (click)="startRepair(w.appointmentId)" [disabled]="processing()">
+                  Commencer réparation
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Modal d'estimation -->
+      <div class="modal" *ngIf="showEstimationModal()" (click)="closeEstimationModal()">
+        <div class="modal-content" (click)="$event.stopPropagation()">
+          <h3>Estimation pour {{ selectedWorkOrder()?.appointmentId?.substring(0, 8) }}...</h3>
+          
+          <div class="estimation-form">
+            <label>Note de diagnostic :</label>
+            <textarea 
+              [(ngModel)]="currentEstimationNote" 
+              placeholder="Décrivez le problème et les réparations nécessaires..."
+              rows="3">
+            </textarea>
+
+            <label>Tâches et prix :</label>
+            <div class="tasks-list">
+              <div *ngFor="let task of currentTasks(); let i = index" class="task-row">
+                <input 
+                  [(ngModel)]="task.label" 
+                  placeholder="Description de la tâche"
+                  class="task-label">
+                <input 
+                  [(ngModel)]="task.price" 
+                  type="number" 
+                  placeholder="Prix"
+                  class="task-price">
+                <button (click)="removeTask(i)" class="remove-btn">×</button>
+              </div>
+              <button (click)="addTask()" class="add-task-btn">+ Ajouter une tâche</button>
+            </div>
+
+            <div class="total">
+              <strong>Total : {{ calculateTotal() }}€</strong>
+            </div>
+
+            <div class="modal-actions">
+              <button (click)="saveEstimation()" [disabled]="processing()" class="save-btn">
+                Envoyer estimation
+              </button>
+              <button (click)="closeEstimationModal()" class="cancel-btn">
+                Annuler
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <p class="error" *ngIf="error()">{{ error() }}</p>
+      <p class="success" *ngIf="success()">{{ success() }}</p>
     </div>
   `,
   styles: [
     `
       .wrap {
-        max-width: 980px;
+        max-width: 1200px;
         margin: 16px auto;
         padding: 0 12px;
       }
@@ -61,68 +170,297 @@ import type { Appointment, AppointmentStatus } from '../../core/models';
         background: #fff;
         overflow: auto;
       }
+      .card h3 {
+        margin-top: 0;
+        color: #333;
+      }
       table {
         width: 100%;
         border-collapse: collapse;
+        margin-top: 8px;
       }
-      th,
-      td {
+      th, td {
         text-align: left;
         padding: 8px;
         border-bottom: 1px solid #eee;
-        vertical-align: top;
+        font-size: 14px;
       }
-      input,
-      select {
-        padding: 8px;
-        border-radius: 8px;
-        border: 1px solid #ccc;
-      }
-      .actions {
-        display: grid;
-        gap: 6px;
-        min-width: 180px;
+      th {
+        background: #f5f5f5;
+        font-weight: 600;
       }
       button {
-        padding: 8px;
+        padding: 8px 12px;
         border-radius: 8px;
         border: 0;
         background: #0b57d0;
         color: #fff;
         cursor: pointer;
+        font-size: 12px;
+      }
+      button:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+      }
+      .estimate-btn {
+        background: #ff9800;
+      }
+      textarea {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        resize: vertical;
+      }
+      .status {
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: 500;
+      }
+      .status-approved {
+        background: #e8f5e8;
+        color: #2e7d32;
+      }
+      .modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+      }
+      .modal-content {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        max-width: 600px;
+        width: 90%;
+        max-height: 80vh;
+        overflow-y: auto;
+      }
+      .estimation-form label {
+        display: block;
+        margin: 16px 0 4px 0;
+        font-weight: 600;
+      }
+      .tasks-list {
+        border: 1px solid #eee;
+        padding: 12px;
+        border-radius: 4px;
+      }
+      .task-row {
+        display: grid;
+        grid-template-columns: 2fr 1fr auto;
+        gap: 8px;
+        margin-bottom: 8px;
+        align-items: center;
+      }
+      .task-label, .task-price {
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+      }
+      .remove-btn {
+        background: #f44336;
+        width: 30px;
+        height: 30px;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .add-task-btn {
+        background: #4caf50;
+        margin-top: 8px;
+      }
+      .total {
+        margin: 16px 0;
+        text-align: right;
+        font-size: 18px;
+      }
+      .modal-actions {
+        display: flex;
+        gap: 12px;
+        justify-content: flex-end;
+        margin-top: 20px;
+      }
+      .save-btn {
+        background: #4caf50;
+      }
+      .cancel-btn {
+        background: #757575;
       }
       .error {
         margin-top: 10px;
         color: #b00020;
+        font-weight: 500;
+      }
+      .success {
+        margin-top: 10px;
+        color: #2e7d32;
+        font-weight: 500;
+      }
+      .info {
+        color: #666;
+        font-style: italic;
+        margin: 8px 0;
       }
     `
   ]
 })
-export class MechanicAppointmentsPageComponent {
+export class MechanicWorkOrdersPageComponent {
   appointments = signal<Appointment[]>([]);
+  workOrders = signal<WorkOrder[]>([]);
+  processing = signal(false);
   error = signal<string | null>(null);
+  success = signal<string | null>(null);
+  showEstimationModal = signal(false);
+  selectedWorkOrder = signal<WorkOrder | null>(null);
+  currentTasks = signal<WorkOrderTask[]>([]);
+  
+  estimationNotes: Record<string, string> = {};
+  currentEstimationNote = '';
 
-  notes: Record<string, string> = {};
-  nextStatus: Record<string, AppointmentStatus | ''> = {};
-
-  constructor(private appointmentsService: AppointmentsService) {}
+  constructor(
+    private appointmentsService: AppointmentsService,
+    private workOrdersService: WorkOrdersService
+  ) {}
 
   async ngOnInit(): Promise<void> {
     await this.refresh();
   }
 
   async refresh(): Promise<void> {
-    this.appointments.set(await this.appointmentsService.list());
+    try {
+      const [appointments, workOrders] = await Promise.all([
+        this.appointmentsService.list(),
+        this.workOrdersService.list()
+      ]);
+      
+      this.appointments.set(appointments);
+      this.workOrders.set(workOrders);
+    } catch (error) {
+      this.error.set('Erreur lors du chargement des données');
+    }
   }
 
-  async apply(id: string): Promise<void> {
-    const status = this.nextStatus[id];
-    if (!status) return;
+  // Rendez-vous confirmés sans work order
+  appointmentsToEstimate() {
+    const existingWorkOrderAppointments = new Set(
+      this.workOrders().map(wo => wo.appointmentId)
+    );
+    
+    return this.appointments().filter(appointment => 
+      appointment.status === 'confirmed' && 
+      !existingWorkOrderAppointments.has(appointment._id)
+    );
+  }
+
+  // Work orders en draft (créés mais pas encore estimés)
+  workOrdersToEstimate() {
+    return this.workOrders().filter(wo => wo.status === 'draft');
+  }
+
+  // Work orders approuvés par le client
+  approvedWorkOrders() {
+    return this.workOrders().filter(wo => wo.status === 'approved');
+  }
+
+  async startDiagnostic(appointmentId: string): Promise<void> {
+    this.processing.set(true);
+    this.error.set(null);
+    this.success.set(null);
+    
     try {
-      await this.appointmentsService.setStatus(id, status, this.notes[id] || '');
+      // Mettre le rendez-vous en "in_progress"
+      await this.appointmentsService.setStatus(appointmentId, 'in_progress', 'Diagnostic en cours');
+      
+      // Créer un work order
+      await this.workOrdersService.create(appointmentId);
+      
+      this.success.set('Diagnostic commencé, work order créé !');
       await this.refresh();
-    } catch {
-      this.error.set('Mise à jour impossible');
+    } catch (error: any) {
+      this.error.set(error.message || 'Erreur lors du démarrage du diagnostic');
+    } finally {
+      this.processing.set(false);
+    }
+  }
+
+  openEstimationModal(workOrder: WorkOrder): void {
+    this.selectedWorkOrder.set(workOrder);
+    this.currentEstimationNote = this.estimationNotes[workOrder._id] || '';
+    this.currentTasks.set(workOrder.tasks.length > 0 ? [...workOrder.tasks] : [{ label: '', price: 0 }]);
+    this.showEstimationModal.set(true);
+  }
+
+  closeEstimationModal(): void {
+    this.showEstimationModal.set(false);
+    this.selectedWorkOrder.set(null);
+    this.currentTasks.set([]);
+    this.currentEstimationNote = '';
+  }
+
+  addTask(): void {
+    this.currentTasks.update(tasks => [...tasks, { label: '', price: 0 }]);
+  }
+
+  removeTask(index: number): void {
+    this.currentTasks.update(tasks => tasks.filter((_, i) => i !== index));
+  }
+
+  calculateTotal(): number {
+    return this.currentTasks().reduce((sum, task) => sum + (task.price || 0), 0);
+  }
+
+  async saveEstimation(): Promise<void> {
+    const workOrder = this.selectedWorkOrder();
+    if (!workOrder) return;
+
+    this.processing.set(true);
+    this.error.set(null);
+    
+    try {
+      const validTasks = this.currentTasks().filter(task => task.label.trim() && task.price > 0);
+      
+      if (validTasks.length === 0) {
+        this.error.set('Ajoutez au moins une tâche avec un prix');
+        return;
+      }
+
+      await this.workOrdersService.updateEstimation(
+        workOrder._id, 
+        validTasks, 
+        this.currentEstimationNote
+      );
+      
+      this.success.set('Estimation créée et envoyée au manager !');
+      this.closeEstimationModal();
+      await this.refresh();
+    } catch (error: any) {
+      this.error.set(error.message || 'Erreur lors de la sauvegarde');
+    } finally {
+      this.processing.set(false);
+    }
+  }
+
+  async startRepair(appointmentId: string): Promise<void> {
+    this.processing.set(true);
+    this.error.set(null);
+    
+    try {
+      await this.appointmentsService.setStatus(appointmentId, 'in_progress', 'Réparation en cours');
+      this.success.set('Réparation commencée !');
+      await this.refresh();
+    } catch (error: any) {
+      this.error.set(error.message || 'Erreur lors du démarrage de la réparation');
+    } finally {
+      this.processing.set(false);
     }
   }
 }

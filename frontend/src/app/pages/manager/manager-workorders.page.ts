@@ -5,7 +5,7 @@ import { WorkOrdersService } from '../../core/services/workorders.service';
 import { AppointmentsService } from '../../core/services/appointments.service';
 import { UsersService } from '../../core/services/users.service';
 import { VehiclesService } from '../../core/services/vehicles.service';
-import type { WorkOrder, Appointment, User, Vehicle } from '../../core/models';
+import type { WorkOrder, Appointment, User, Vehicle, WorkOrderTask } from '../../core/models';
 
 @Component({
   standalone: true,
@@ -16,8 +16,7 @@ import type { WorkOrder, Appointment, User, Vehicle } from '../../core/models';
       <h2>Ordres de réparation (manager)</h2>
 
       <div class="card">
-        <h3>Créer un ordre de réparation</h3>
-        <p>Sélectionnez un rendez-vous confirmé pour créer un ordre de réparation :</p>
+        <h3>Estimations à réviser</h3>
         <table>
           <thead>
             <tr>
@@ -25,28 +24,60 @@ import type { WorkOrder, Appointment, User, Vehicle } from '../../core/models';
               <th>Client</th>
               <th>Véhicule</th>
               <th>Mécanicien</th>
-              <th>Note client</th>
+              <th>Total</th>
               <th>Action</th>
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let a of availableAppointments(); trackBy: trackByAppointmentId">
-              <td>{{ a.scheduledAt ? (a.scheduledAt | date : 'short') : '-' }}</td>
-              <td>{{ getUserName(a.clientId) }}</td>
-              <td>{{ getVehicleInfo(a.vehicleId) }}</td>
-              <td>{{ getUserName(a.mechanicId) || 'Non assigné' }}</td>
-              <td>{{ a.clientNote || '-' }}</td>
+            <tr *ngFor="let w of estimatedWorkOrders()">
+              <td>{{ w.createdAt | date : 'short' }}</td>
+              <td>{{ getClientName(w.appointmentId) }}</td>
+              <td>{{ getVehicleInfo(w.appointmentId) }}</td>
+              <td>{{ getUserName(w.mechanicId) || 'Non assigné' }}</td>
+              <td>{{ w.total }}€</td>
               <td>
-                <button (click)="createForAppointment(a._id)" [disabled]="creating()">
-                  Créer ordre
+                <button (click)="reviewEstimation(w)" class="review-btn">
+                  Réviser
                 </button>
-                <small class="debug">ID: {{ a._id.substring(0, 8) }}...</small>
               </td>
             </tr>
           </tbody>
         </table>
-        <p *ngIf="availableAppointments().length === 0" class="info">
-          Aucun rendez-vous confirmé disponible pour créer un ordre de réparation.
+        <p *ngIf="estimatedWorkOrders().length === 0" class="info">
+          Aucune estimation à réviser.
+        </p>
+      </div>
+
+      <div class="card">
+        <h3>Négociations en cours</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Client</th>
+              <th>Véhicule</th>
+              <th>Total</th>
+              <th>Messages</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let w of negotiatingWorkOrders()">
+              <td>{{ getClientName(w.appointmentId) }}</td>
+              <td>{{ getVehicleInfo(w.appointmentId) }}</td>
+              <td>{{ w.total }}€</td>
+              <td>
+                <span class="message-count">{{ (w.messages || []).length }} message(s)</span>
+              </td>
+              <td>
+                <button (click)="openNegotiation(w)" class="negotiate-btn">
+                  Gérer
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <p *ngIf="negotiatingWorkOrders().length === 0" class="info">
+          Aucune négociation en cours.
         </p>
       </div>
 
@@ -73,7 +104,7 @@ import type { WorkOrder, Appointment, User, Vehicle } from '../../core/models';
               <td>{{ (w.tasks || []).length }} tâche(s)</td>
               <td>{{ (w.total || 0) }}€</td>
               <td class="actions">
-                <button *ngIf="w.status === 'estimated'" (click)="reviewEstimation(w._id)">
+                <button *ngIf="w.status === 'estimated'" (click)="reviewEstimation(w)">
                   Réviser
                 </button>
                 <button *ngIf="w.status === 'approved'" (click)="validate(w._id)">
@@ -96,6 +127,116 @@ import type { WorkOrder, Appointment, User, Vehicle } from '../../core/models';
 
       <p class="error" *ngIf="error()">{{ error() }}</p>
       <p class="success" *ngIf="success()">{{ success() }}</p>
+
+      <!-- Modal de révision d'estimation -->
+      <div class="modal" *ngIf="showReviewModal()" (click)="closeReviewModal()">
+        <div class="modal-content" (click)="$event.stopPropagation()">
+          <h3>Révision d'estimation</h3>
+          
+          <div *ngIf="selectedWorkOrder()">
+            <div class="estimation-info">
+              <p><strong>Client :</strong> {{ getClientName(selectedWorkOrder()!.appointmentId) }}</p>
+              <p><strong>Diagnostic :</strong> {{ selectedWorkOrder()!.estimationNote || 'Aucun diagnostic' }}</p>
+            </div>
+
+            <div class="tasks-review">
+              <h4>Tâches et prix :</h4>
+              <div *ngFor="let task of reviewTasks(); let i = index" class="task-row">
+                <input 
+                  [(ngModel)]="task.label" 
+                  placeholder="Description"
+                  class="task-label">
+                <input 
+                  [(ngModel)]="task.price" 
+                  type="number" 
+                  placeholder="Prix"
+                  class="task-price">
+                <button (click)="removeReviewTask(i)" class="remove-btn">×</button>
+              </div>
+              <button (click)="addReviewTask()" class="add-task-btn">+ Ajouter une tâche</button>
+            </div>
+
+            <div class="total-review">
+              <strong>Total révisé : {{ calculateReviewTotal() }}€</strong>
+            </div>
+
+            <div class="modal-actions">
+              <button (click)="sendToClient()" [disabled]="processing()" class="send-btn">
+                Envoyer au client
+              </button>
+              <button (click)="closeReviewModal()" class="cancel-btn">
+                Annuler
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal de négociation -->
+      <div class="modal" *ngIf="showNegotiationModal()" (click)="closeNegotiationModal()">
+        <div class="modal-content negotiation-modal" (click)="$event.stopPropagation()">
+          <h3>Négociation avec le client</h3>
+          
+          <div *ngIf="selectedWorkOrder()">
+            <div class="client-info">
+              <p><strong>Client :</strong> {{ getClientName(selectedWorkOrder()!.appointmentId) }}</p>
+              <p><strong>Total actuel :</strong> {{ selectedWorkOrder()!.total }}€</p>
+            </div>
+
+            <!-- Messages de négociation -->
+            <div class="messages-section">
+              <h4>Conversation :</h4>
+              <div class="messages" #messagesContainer>
+                <div *ngFor="let msg of selectedWorkOrder()!.messages || []" 
+                     class="message" 
+                     [class]="'message-' + msg.sender">
+                  <div class="message-header">
+                    <span class="sender">{{ getSenderName(msg.sender) }}</span>
+                    <span class="date">{{ msg.createdAt | date:'short' }}</span>
+                  </div>
+                  <div class="message-content">{{ msg.message }}</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Réponse manager -->
+            <div class="response-section">
+              <textarea 
+                [(ngModel)]="managerMessage" 
+                placeholder="Votre réponse au client..."
+                rows="3">
+              </textarea>
+              <button (click)="sendManagerMessage()" [disabled]="processing()" class="message-btn">
+                Envoyer message
+              </button>
+            </div>
+
+            <!-- Ajustement des prix -->
+            <div class="price-adjustment">
+              <h4>Ajuster les prix :</h4>
+              <div *ngFor="let task of negotiationTasks(); let i = index" class="task-row">
+                <span class="task-label">{{ task.label }}</span>
+                <input 
+                  [(ngModel)]="task.price" 
+                  type="number" 
+                  class="task-price">
+              </div>
+              <div class="total-adjustment">
+                <strong>Nouveau total : {{ calculateNegotiationTotal() }}€</strong>
+              </div>
+              <button (click)="updatePrices()" [disabled]="processing()" class="update-btn">
+                Mettre à jour les prix
+              </button>
+            </div>
+
+            <div class="modal-actions">
+              <button (click)="closeNegotiationModal()" class="close-btn">
+                Fermer
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   `,
   styles: [
@@ -189,6 +330,143 @@ import type { WorkOrder, Appointment, User, Vehicle } from '../../core/models';
         font-style: italic;
         font-size: 12px;
       }
+      .review-btn {
+        background: #ff9800;
+      }
+      .negotiate-btn {
+        background: #2196f3;
+      }
+      .message-count {
+        background: #e3f2fd;
+        padding: 2px 6px;
+        border-radius: 12px;
+        font-size: 11px;
+      }
+      .modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+      }
+      .modal-content {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        max-width: 600px;
+        width: 90%;
+        max-height: 80vh;
+        overflow-y: auto;
+      }
+      .negotiation-modal {
+        max-width: 800px;
+      }
+      .estimation-info,
+      .client-info {
+        background: #f8f9fa;
+        padding: 12px;
+        border-radius: 4px;
+        margin-bottom: 16px;
+      }
+      .tasks-review,
+      .price-adjustment {
+        margin: 16px 0;
+      }
+      .task-row {
+        display: grid;
+        grid-template-columns: 2fr 1fr auto;
+        gap: 8px;
+        margin-bottom: 8px;
+        align-items: center;
+      }
+      .task-label,
+      .task-price {
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+      }
+      .remove-btn {
+        background: #f44336;
+        width: 30px;
+        height: 30px;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .add-task-btn {
+        background: #4caf50;
+        margin-top: 8px;
+      }
+      .total-review,
+      .total-adjustment {
+        margin: 16px 0;
+        text-align: right;
+        font-size: 18px;
+      }
+      .messages-section {
+        margin: 16px 0;
+        max-height: 300px;
+        overflow-y: auto;
+        border: 1px solid #eee;
+        border-radius: 4px;
+        padding: 12px;
+      }
+      .message {
+        margin: 8px 0;
+        padding: 8px;
+        border-radius: 4px;
+      }
+      .message-client {
+        background: #e3f2fd;
+        margin-left: 20px;
+      }
+      .message-manager {
+        background: #fff3e0;
+        margin-right: 20px;
+      }
+      .message-header {
+        display: flex;
+        justify-content: space-between;
+        font-size: 11px;
+        color: #666;
+        margin-bottom: 4px;
+      }
+      .response-section {
+        margin: 16px 0;
+      }
+      .response-section textarea {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        resize: vertical;
+        margin-bottom: 8px;
+      }
+      .modal-actions {
+        display: flex;
+        gap: 12px;
+        justify-content: flex-end;
+        margin-top: 20px;
+      }
+      .send-btn {
+        background: #4caf50;
+      }
+      .update-btn {
+        background: #2196f3;
+      }
+      .message-btn {
+        background: #ff9800;
+      }
+      .cancel-btn,
+      .close-btn {
+        background: #757575;
+      }
       .error {
         margin-top: 10px;
         color: #b00020;
@@ -219,8 +497,16 @@ export class ManagerWorkOrdersPageComponent {
   users = signal<User[]>([]);
   vehicles = signal<Vehicle[]>([]);
   creating = signal(false);
+  processing = signal(false);
   error = signal<string | null>(null);
   success = signal<string | null>(null);
+  showReviewModal = signal(false);
+  showNegotiationModal = signal(false);
+  selectedWorkOrder = signal<WorkOrder | null>(null);
+  reviewTasks = signal<WorkOrderTask[]>([]);
+  negotiationTasks = signal<WorkOrderTask[]>([]);
+  
+  managerMessage = '';
 
   constructor(
     private workOrdersService: WorkOrdersService,
@@ -263,15 +549,45 @@ export class ManagerWorkOrdersPageComponent {
     );
   }
 
+  // Work orders avec estimations à réviser
+  estimatedWorkOrders() {
+    return this.workOrders().filter(wo => wo.status === 'estimated');
+  }
+
+  // Work orders en négociation avec le client
+  negotiatingWorkOrders() {
+    return this.workOrders().filter(wo => wo.status === 'pending_client_approval');
+  }
+
   getUserName(userId?: string): string {
     if (!userId) return '';
     const user = this.users().find(u => u.id === userId);
     return user ? user.fullName : 'Utilisateur inconnu';
   }
 
-  getVehicleInfo(vehicleId: string): string {
+  getVehicleInfoById(vehicleId: string): string {
     const vehicle = this.vehicles().find(v => v._id === vehicleId);
     return vehicle ? `${vehicle.make} ${vehicle.model} (${vehicle.plate})` : 'Véhicule inconnu';
+  }
+
+  getClientName(appointmentId: string): string {
+    const appointment = this.appointments().find(a => a._id === appointmentId);
+    return appointment ? this.getUserName(appointment.clientId) : 'Client inconnu';
+  }
+
+  getVehicleInfo(appointmentId: string): string {
+    const appointment = this.appointments().find(a => a._id === appointmentId);
+    if (!appointment) return 'Véhicule inconnu';
+    return this.getVehicleInfoById(appointment.vehicleId);
+  }
+
+  getSenderName(sender: string): string {
+    const names = {
+      'client': 'Client',
+      'manager': 'Manager',
+      'mechanic': 'Mécanicien'
+    };
+    return names[sender as keyof typeof names] || sender;
   }
 
   trackByAppointmentId(index: number, appointment: Appointment): string {
@@ -323,20 +639,115 @@ export class ManagerWorkOrdersPageComponent {
     }
   }
 
-  async reviewEstimation(id: string): Promise<void> {
+  async reviewEstimation(workOrder: WorkOrder): Promise<void> {
+    this.selectedWorkOrder.set(workOrder);
+    this.reviewTasks.set([...workOrder.tasks]);
+    this.showReviewModal.set(true);
+  }
+
+  closeReviewModal(): void {
+    this.showReviewModal.set(false);
+    this.selectedWorkOrder.set(null);
+    this.reviewTasks.set([]);
+  }
+
+  addReviewTask(): void {
+    this.reviewTasks.update(tasks => [...tasks, { label: '', price: 0 }]);
+  }
+
+  removeReviewTask(index: number): void {
+    this.reviewTasks.update(tasks => tasks.filter((_, i) => i !== index));
+  }
+
+  calculateReviewTotal(): number {
+    return this.reviewTasks().reduce((sum, task) => sum + (task.price || 0), 0);
+  }
+
+  async sendToClient(): Promise<void> {
+    const workOrder = this.selectedWorkOrder();
+    if (!workOrder) return;
+
+    this.processing.set(true);
     this.error.set(null);
-    this.success.set(null);
+    
     try {
-      // Pour l'instant, on envoie directement au client
-      // Plus tard, on pourra ajouter une interface pour modifier les prix
-      const workOrder = this.workOrders().find(w => w._id === id);
-      if (workOrder) {
-        await this.workOrdersService.managerReview(id, workOrder.tasks, 'send_to_client');
-        this.success.set('Estimation envoyée au client pour approbation !');
-        await this.refresh();
+      const validTasks = this.reviewTasks().filter(task => task.label.trim() && task.price > 0);
+      
+      await this.workOrdersService.managerReview(workOrder._id, validTasks, 'send_to_client');
+      this.success.set('Estimation envoyée au client pour approbation !');
+      this.closeReviewModal();
+      await this.refresh();
+    } catch (error: any) {
+      this.error.set(error.message || 'Erreur lors de l\'envoi');
+    } finally {
+      this.processing.set(false);
+    }
+  }
+
+  openNegotiation(workOrder: WorkOrder): void {
+    this.selectedWorkOrder.set(workOrder);
+    this.negotiationTasks.set([...workOrder.tasks]);
+    this.showNegotiationModal.set(true);
+  }
+
+  closeNegotiationModal(): void {
+    this.showNegotiationModal.set(false);
+    this.selectedWorkOrder.set(null);
+    this.negotiationTasks.set([]);
+    this.managerMessage = '';
+  }
+
+  calculateNegotiationTotal(): number {
+    return this.negotiationTasks().reduce((sum, task) => sum + (task.price || 0), 0);
+  }
+
+  async sendManagerMessage(): Promise<void> {
+    const workOrder = this.selectedWorkOrder();
+    if (!workOrder || !this.managerMessage.trim()) return;
+
+    this.processing.set(true);
+    this.error.set(null);
+    
+    try {
+      await this.workOrdersService.addMessage(workOrder._id, this.managerMessage);
+      this.managerMessage = '';
+      this.success.set('Message envoyé !');
+      await this.refresh();
+      // Recharger le work order sélectionné
+      const updatedWorkOrder = this.workOrders().find(w => w._id === workOrder._id);
+      if (updatedWorkOrder) {
+        this.selectedWorkOrder.set(updatedWorkOrder);
       }
     } catch (error: any) {
-      this.error.set(error.message || 'Erreur lors de la révision');
+      this.error.set(error.message || 'Erreur lors de l\'envoi du message');
+    } finally {
+      this.processing.set(false);
+    }
+  }
+
+  async updatePrices(): Promise<void> {
+    const workOrder = this.selectedWorkOrder();
+    if (!workOrder) return;
+
+    this.processing.set(true);
+    this.error.set(null);
+    
+    try {
+      const validTasks = this.negotiationTasks().filter(task => task.label.trim() && task.price > 0);
+      
+      await this.workOrdersService.managerReview(workOrder._id, validTasks, 'send_to_client');
+      this.success.set('Prix mis à jour et renvoyé au client !');
+      await this.refresh();
+      // Recharger le work order sélectionné
+      const updatedWorkOrder = this.workOrders().find(w => w._id === workOrder._id);
+      if (updatedWorkOrder) {
+        this.selectedWorkOrder.set(updatedWorkOrder);
+        this.negotiationTasks.set([...updatedWorkOrder.tasks]);
+      }
+    } catch (error: any) {
+      this.error.set(error.message || 'Erreur lors de la mise à jour');
+    } finally {
+      this.processing.set(false);
     }
   }
 }

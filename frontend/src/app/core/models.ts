@@ -55,5 +55,7 @@ export interface WorkOrder {
   clientApproved?: boolean;
   clientNote?: string;
   messages?: WorkOrderMessage[];
+  createdAt?: string;
+  updatedAt?: string;
 }
 
