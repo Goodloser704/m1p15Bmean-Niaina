@@ -1,0 +1,77 @@
+
+deploiment du backend 
+base de donnee
+mongoDB Atlas
+mongodb+srv://faustresilient_db_user:<db_password>@cluster0.9fmmkpa.mongodb.net/
+user: faustresilient_db_user
+Pass word NjpL9dxRHG7I0Bdn
+
+mongodb+srv://faustresilient_db_user:NjpL9dxRHG7I0Bdn@cluster0.9fmmkpa.mongodb.net/m1p12mean_garage?retryWrites=true&w=majority
+
+
+frontend :Domains 
+m1p15-bmean-niaina.vercel.app
+m1p15-bmean-niaina-git-main-neros-projects-629366ad.vercel.app
+m1p15-bmean-niaina-cakwq06ij-neros-projects-629366ad.vercel.app
+
+
+Note sur le deployment :
+Vercel
+- Allez dans l'onglet Settings (Paramètres) > Build & Development .
+- Repérez la section Output Directory .
+- Cliquez sur Override (Surcharger) et entrez exactement ceci : dist/m1p12mean-xxx-yyy/browser
+
+"Add Environment Variable" button.
+
+### 1. Database Connection
+- Key: MONGODB_URI
+- Value: mongodb+srv://faustresilient_db_user:NjpL9dxRHG7I0Bdn@cluster0.9fmmkpa.mongodb.net/m1p12mean_garage?retryWrites=true&w=majority
+### 2. Frontend Connection (CORS)
+This allows your frontend on Vercel to communicate with the backend.
+
+- Key: CORS_ORIGIN
+- Value: https://m1p15-bmean-niaina.vercel.app (Note: Ensure you include https:// and no trailing slash)
+### 3. Security (JWT)
+Used to encrypt authentication tokens.
+
+- Key: JWT_SECRET
+- Value: (Enter a long, random password here, e.g., MySuperSecretKey_2024!_ChangeMe )
+
+
+
+toujour dans vers Root Directory 
+frontend :vercel
+backend :Render
+base :mongoDB Atlas
+
+
+FONCTIONNALITÉS ACTUELLES (TP8)
+🔐 Authentification & Autorisation
+✅ Système de connexion JWT avec 3 rôles (Client, Mécanicien, Manager)
+✅ Guards de protection des routes par rôle
+✅ Comptes de démonstration pré-configurés
+👥 Gestion des Utilisateurs
+✅ 3 types d'utilisateurs avec interfaces dédiées
+✅ Profils utilisateur avec nom complet et email
+🚗 Gestion des Véhicules
+✅ Clients peuvent ajouter leurs véhicules (marque, modèle, plaque, VIN)
+✅ Managers voient tous les véhicules avec propriétaires
+📅 Système de Rendez-vous
+✅ Clients : Demander des rendez-vous, voir l'historique
+✅ Managers : Confirmer rendez-vous, assigner mécaniciens, planifier dates
+✅ Mécaniciens : Voir rendez-vous assignés, mettre à jour statuts
+✅ Statuts : requested → confirmed → in_progress → done/canceled
+✅ Notes client, manager et mécanicien
+🔧 Ordres de Travail
+✅ Création d'ordres de travail liés aux rendez-vous
+✅ Gestion des tâches avec prix (format "label:price")
+✅ Calcul automatique du total
+✅ Validation par le manager
+✅ Statuts : draft → validated → paid
+🎨 Interface Utilisateur
+✅ Design responsive avec CSS moderne
+✅ Tableaux pour affichage des données
+✅ Formulaires intuitifs
+✅ Navigation par rôle
+
+🚀 FONCTIONNALITÉS À IMPLÉMENTER

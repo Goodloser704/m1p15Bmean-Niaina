@@ -14,21 +14,28 @@ router.get("/", requireAuth, async (req, res) => {
 });
 
 router.post("/", requireAuth, requireRole(["mechanic", "manager"]), async (req, res) => {
-  const { appointmentId } = req.body || {};
-  if (!appointmentId) return res.status(400).json({ message: "appointmentId is required" });
+  try {
+    console.log("📝 Creating work order:", req.body);
+    const { appointmentId } = req.body || {};
+    if (!appointmentId) return res.status(400).json({ message: "appointmentId is required" });
 
-  const appointment = await Appointment.findById(appointmentId);
-  if (!appointment) return res.status(404).json({ message: "Appointment not found" });
+    const appointment = await Appointment.findById(appointmentId);
+    if (!appointment) return res.status(404).json({ message: "Appointment not found" });
 
-  const existing = await WorkOrder.findOne({ appointmentId: appointment._id });
-  if (existing) return res.status(409).json({ message: "Work order already exists" });
+    const existing = await WorkOrder.findOne({ appointmentId: appointment._id });
+    if (existing) return res.status(409).json({ message: "Work order already exists" });
 
-  const workOrder = await WorkOrder.create({
-    appointmentId: appointment._id,
-    mechanicId: appointment.mechanicId || undefined
-  });
+    const workOrder = await WorkOrder.create({
+      appointmentId: appointment._id,
+      mechanicId: appointment.mechanicId || undefined
+    });
 
-  return res.status(201).json({ workOrder });
+    console.log("✅ Work order created:", workOrder._id);
+    return res.status(201).json({ workOrder });
+  } catch (error) {
+    console.error("❌ Error creating work order:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
 });
 
 router.patch("/:id/tasks", requireAuth, requireRole(["mechanic", "manager"]), async (req, res) => {

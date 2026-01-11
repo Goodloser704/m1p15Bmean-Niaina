@@ -13,7 +13,21 @@ function createApp() {
   const app = express();
 
   app.use(morgan("dev"));
-  app.use(cors({ origin: corsOrigin, credentials: true }));
+  
+  // Debug CORS
+  app.use((req, res, next) => {
+    console.log(`🌐 ${req.method} ${req.path} - Origin: ${req.headers.origin}`);
+    next();
+  });
+
+  // Configuration CORS plus robuste
+  app.use(cors({ 
+    origin: corsOrigin || "https://m1p15-bmean-niaina.vercel.app", 
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+  }));
+  
   app.use(express.json({ limit: "1mb" }));
 
   app.get("/health", (req, res) => res.json({ ok: true }));

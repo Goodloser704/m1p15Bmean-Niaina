@@ -18,3 +18,9 @@ module.exports = {
   corsOrigin: process.env.CORS_ORIGIN || "http://localhost:4200"
 };
 
+// Log des variables d'environnement importantes (sans secrets)
+console.log("🔧 Configuration:");
+console.log("  PORT:", process.env.PORT || 3000);
+console.log("  CORS_ORIGIN:", process.env.CORS_ORIGIN || "http://localhost:4200");
+console.log("  NODE_ENV:", process.env.NODE_ENV || "development");
+
