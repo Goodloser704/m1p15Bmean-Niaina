@@ -10,7 +10,8 @@ import type { WorkOrder, Appointment, WorkOrderMessage } from '../../core/models
   selector: 'app-client-workorders-page',
   imports: [CommonModule, FormsModule],
   template: `
-    <div class="wrap">
+    <div class="page-mechanic-theme">
+      <div class="wrap">
       <h2>Mes estimations et réparations</h2>
 
       <!-- Estimations en attente d'approbation -->
@@ -169,6 +170,7 @@ import type { WorkOrder, Appointment, WorkOrderMessage } from '../../core/models
 
       <p class="error" *ngIf="error()">{{ error() }}</p>
       <p class="success" *ngIf="success()">{{ success() }}</p>
+      </div>
     </div>
   `,
   styles: [

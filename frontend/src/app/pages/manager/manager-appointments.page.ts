@@ -10,7 +10,8 @@ import type { Appointment, User } from '../../core/models';
   selector: 'app-manager-appointments-page',
   imports: [CommonModule, FormsModule],
   template: `
-    <div class="wrap">
+    <div class="page-mechanic-theme">
+      <div class="wrap">
       <h2>Rendez-vous (manager)</h2>
 
       <div class="card">
@@ -50,6 +51,7 @@ import type { Appointment, User } from '../../core/models';
       </div>
 
       <p class="error" *ngIf="error()">{{ error() }}</p>
+      </div>
     </div>
   `,
   styles: [

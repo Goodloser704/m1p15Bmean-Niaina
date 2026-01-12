@@ -8,7 +8,8 @@ import type { Vehicle } from '../../core/models';
   selector: 'app-manager-vehicles-page',
   imports: [CommonModule],
   template: `
-    <div class="wrap">
+    <div class="page-mechanic-theme">
+      <div class="wrap">
       <h2>Véhicules (manager)</h2>
       <div class="card">
         <table>
@@ -29,6 +30,7 @@ import type { Vehicle } from '../../core/models';
             </tr>
           </tbody>
         </table>
+      </div>
       </div>
     </div>
   `,

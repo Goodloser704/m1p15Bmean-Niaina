@@ -9,7 +9,8 @@ import type { Vehicle } from '../../core/models';
   selector: 'app-client-vehicles-page',
   imports: [CommonModule, FormsModule],
   template: `
-    <div class="wrap">
+    <div class="page-mechanic-theme">
+      <div class="wrap">
       <h2>Mes véhicules</h2>
 
       <div class="card">
@@ -44,6 +45,7 @@ import type { Vehicle } from '../../core/models';
             </tr>
           </tbody>
         </table>
+      </div>
       </div>
     </div>
   `,

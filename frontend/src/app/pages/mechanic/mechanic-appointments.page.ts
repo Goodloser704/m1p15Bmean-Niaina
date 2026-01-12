@@ -12,7 +12,8 @@ import type { Appointment, WorkOrder, WorkOrderTask, Vehicle, User } from '../..
   selector: 'app-mechanic-workorders-page',
   imports: [CommonModule, FormsModule],
   template: `
-    <div class="wrap">
+    <div class="page-mechanic-theme">
+      <div class="wrap">
       <div class="version-indicator">
         🔧 Interface Mécanicien v2.0 - Nouvelle Version avec Estimations
       </div>
@@ -230,6 +231,7 @@ import type { Appointment, WorkOrder, WorkOrderTask, Vehicle, User } from '../..
 
       <p class="error" *ngIf="error()">{{ error() }}</p>
       <p class="success" *ngIf="success()">{{ success() }}</p>
+      </div>
     </div>
   `,
   styles: [

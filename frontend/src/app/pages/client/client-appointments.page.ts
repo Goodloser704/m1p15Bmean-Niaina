@@ -10,7 +10,8 @@ import type { Appointment, Vehicle } from '../../core/models';
   selector: 'app-client-appointments-page',
   imports: [CommonModule, FormsModule],
   template: `
-    <div class="wrap">
+    <div class="page-mechanic-theme">
+      <div class="wrap">
       <h2>Mes rendez-vous</h2>
 
       <div class="card">
@@ -46,6 +47,7 @@ import type { Appointment, Vehicle } from '../../core/models';
             </tr>
           </tbody>
         </table>
+      </div>
       </div>
     </div>
   `,
