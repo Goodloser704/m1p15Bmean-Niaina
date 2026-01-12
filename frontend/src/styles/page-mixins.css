@@ -5,7 +5,7 @@
 .page-mechanic-theme .container {
   background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
   min-height: 100vh;
-  color: #ecf0f1;
+  color: #ffffff;
   font-family: 'Roboto Mono', monospace;
   padding: 20px;
   position: relative;
@@ -45,8 +45,8 @@
 .page-mechanic-theme h1,
 .page-mechanic-theme h2,
 .page-mechanic-theme h3 {
-  color: #ecf0f1;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  color: #ffffff;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
 }
 
 .page-mechanic-theme h2 {
@@ -54,6 +54,14 @@
   font-size: 2.2em;
   margin: 20px 0;
   animation: titleGlow 3s ease-in-out infinite alternate;
+}
+
+.page-mechanic-theme p,
+.page-mechanic-theme td,
+.page-mechanic-theme span,
+.page-mechanic-theme label {
+  color: #f8f9fa;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.6);
 }
 
 .page-mechanic-theme .card {
@@ -86,10 +94,11 @@
 }
 
 .page-mechanic-theme .card h3 {
-  color: #ecf0f1;
+  color: #ffffff;
   display: flex;
   align-items: center;
   gap: 12px;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
 }
 
 .page-mechanic-theme .card h3::before {
@@ -141,6 +150,8 @@
   padding: 12px 16px;
   border-bottom: 1px solid #34495e;
   transition: all 0.3s ease;
+  color: #f8f9fa;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.6);
 }
 
 .page-mechanic-theme th {
@@ -159,12 +170,19 @@
 .page-mechanic-theme input,
 .page-mechanic-theme textarea,
 .page-mechanic-theme select {
-  background: rgba(44, 62, 80, 0.8);
+  background: rgba(44, 62, 80, 0.9);
   border: 2px solid #34495e;
-  color: #ecf0f1;
+  color: #ffffff;
   border-radius: 8px;
   padding: 12px;
   transition: all 0.3s ease;
+  font-weight: 500;
+}
+
+.page-mechanic-theme input::placeholder,
+.page-mechanic-theme textarea::placeholder {
+  color: #bdc3c7;
+  opacity: 0.8;
 }
 
 .page-mechanic-theme input:focus,
@@ -174,6 +192,7 @@
   background: rgba(44, 62, 80, 1);
   box-shadow: 0 0 10px rgba(230, 126, 34, 0.3);
   outline: none;
+  color: #ffffff;
 }
 
 .page-mechanic-theme .error {
@@ -195,13 +214,14 @@
 }
 
 .page-mechanic-theme .info {
-  background: rgba(189, 195, 199, 0.1);
+  background: rgba(189, 195, 199, 0.15);
   border: 1px dashed #bdc3c7;
-  color: #bdc3c7;
+  color: #ffffff;
   padding: 16px;
   border-radius: 8px;
   text-align: center;
   font-style: italic;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
 }
 
 /* Animations */
