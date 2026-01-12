@@ -175,226 +175,289 @@ import type { WorkOrder, Appointment, WorkOrderMessage } from '../../core/models
   `,
   styles: [
     `
+      /* Styles simplifiés compatibles avec le thème mécanicien */
       .wrap {
         max-width: 1000px;
         margin: 16px auto;
         padding: 0 12px;
       }
-      .card {
-        margin-top: 16px;
-        padding: 20px;
-        border: 1px solid #e3e3e3;
-        border-radius: 10px;
-        background: #fff;
-      }
-      .card h3 {
-        margin-top: 0;
-        color: #333;
-        border-bottom: 2px solid #0b57d0;
-        padding-bottom: 8px;
-      }
+      
       .estimation-details {
         margin: 16px 0;
       }
+      
       .info-row {
         margin: 8px 0;
-        padding: 8px;
-        background: #f8f9fa;
-        border-radius: 4px;
+        padding: 12px;
+        background: rgba(52, 73, 94, 0.8);
+        border-radius: 8px;
+        border-left: 4px solid #e67e22;
+        color: #f8f9fa;
       }
+      
       .tasks-section {
         margin: 20px 0;
       }
+      
       .tasks-table {
         width: 100%;
         border-collapse: collapse;
         margin-top: 8px;
+        background: rgba(44, 62, 80, 0.5);
+        border-radius: 8px;
+        overflow: hidden;
       }
+      
       .tasks-table th,
       .tasks-table td {
         padding: 12px;
         text-align: left;
-        border-bottom: 1px solid #eee;
+        border-bottom: 1px solid #34495e;
+        color: #f8f9fa;
       }
+      
       .tasks-table th {
-        background: #f5f5f5;
+        background: linear-gradient(135deg, #e67e22, #f39c12);
+        color: white;
+        font-weight: 600;
+        text-transform: uppercase;
+      }
+      
+      .total-row {
+        background: rgba(230, 126, 34, 0.2);
+        font-size: 16px;
+        color: #ffffff;
         font-weight: 600;
       }
-      .total-row {
-        background: #e3f2fd;
-        font-size: 16px;
-      }
+      
       .messages-section {
         margin: 20px 0;
         padding: 16px;
-        background: #f8f9fa;
+        background: rgba(52, 73, 94, 0.6);
         border-radius: 8px;
+        border: 1px solid #34495e;
       }
+      
       .messages {
         max-height: 300px;
         overflow-y: auto;
       }
+      
       .message {
         margin: 12px 0;
         padding: 12px;
         border-radius: 8px;
+        color: #f8f9fa;
       }
+      
       .message-client {
-        background: #e3f2fd;
+        background: rgba(52, 152, 219, 0.3);
         margin-left: 20px;
+        border-left: 4px solid #3498db;
       }
+      
       .message-manager {
-        background: #fff3e0;
+        background: rgba(243, 156, 18, 0.3);
         margin-right: 20px;
+        border-left: 4px solid #f39c12;
       }
+      
       .message-mechanic {
-        background: #e8f5e8;
+        background: rgba(39, 174, 96, 0.3);
         margin-right: 20px;
+        border-left: 4px solid #27ae60;
       }
+      
       .message-header {
         display: flex;
         justify-content: space-between;
         font-size: 12px;
-        color: #666;
+        color: #bdc3c7;
         margin-bottom: 4px;
       }
+      
       .sender {
         font-weight: 600;
+        color: #ffffff;
       }
+      
       .response-section,
       .approval-section {
         margin: 20px 0;
         padding: 16px;
-        border: 1px solid #ddd;
+        border: 2px solid #34495e;
         border-radius: 8px;
+        background: rgba(44, 62, 80, 0.3);
       }
+      
       .response-actions,
       .approval-actions {
         margin-top: 12px;
         display: flex;
         gap: 12px;
+        flex-wrap: wrap;
       }
+      
       textarea {
         width: 100%;
         padding: 12px;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-        resize: vertical;
+        border: 2px solid #34495e;
+        border-radius: 8px;
+        background: rgba(44, 62, 80, 0.9);
+        color: #ffffff;
         font-family: inherit;
+        resize: vertical;
       }
-      button {
+      
+      textarea::placeholder {
+        color: #bdc3c7;
+        opacity: 0.8;
+      }
+      
+      textarea:focus {
+        border-color: #e67e22;
+        background: rgba(44, 62, 80, 1);
+        box-shadow: 0 0 10px rgba(230, 126, 34, 0.3);
+        outline: none;
+      }
+      
+      .approve-btn {
+        background: linear-gradient(135deg, #27ae60, #2ecc71);
+        border: 2px solid #27ae60;
+        color: white;
         padding: 10px 16px;
         border-radius: 8px;
-        border: 0;
         cursor: pointer;
-        font-size: 14px;
-        font-weight: 500;
+        font-weight: 600;
       }
-      .approve-btn {
-        background: #4caf50;
-        color: white;
-      }
+      
       .reject-btn {
-        background: #f44336;
+        background: linear-gradient(135deg, #e74c3c, #c0392b);
+        border: 2px solid #e74c3c;
         color: white;
+        padding: 10px 16px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
       }
+      
       .message-btn {
-        background: #2196f3;
+        background: linear-gradient(135deg, #3498db, #2980b9);
+        border: 2px solid #3498db;
         color: white;
+        padding: 10px 16px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
       }
+      
       .details-btn {
-        background: #ff9800;
+        background: linear-gradient(135deg, #f39c12, #e67e22);
+        border: 2px solid #f39c12;
         color: white;
         font-size: 12px;
         padding: 6px 12px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
       }
+      
       .close-btn {
-        background: #757575;
+        background: linear-gradient(135deg, #7f8c8d, #95a5a6);
+        border: 2px solid #7f8c8d;
         color: white;
+        padding: 10px 16px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
       }
+      
       button:disabled {
-        background: #ccc;
+        background: #7f8c8d;
+        border-color: #95a5a6;
         cursor: not-allowed;
       }
+      
       .status {
-        padding: 4px 8px;
-        border-radius: 4px;
+        padding: 6px 12px;
+        border-radius: 20px;
         font-size: 12px;
-        font-weight: 500;
+        font-weight: 600;
+        text-transform: uppercase;
       }
+      
       .status-approved {
-        background: #e8f5e8;
-        color: #2e7d32;
+        background: linear-gradient(135deg, #27ae60, #2ecc71);
+        color: white;
       }
+      
       .status-rejected {
-        background: #ffebee;
-        color: #c62828;
+        background: linear-gradient(135deg, #e74c3c, #c0392b);
+        color: white;
       }
+      
       .status-validated {
-        background: #d4edda;
-        color: #155724;
+        background: linear-gradient(135deg, #27ae60, #2ecc71);
+        color: white;
       }
+      
       .status-paid {
-        background: #d1ecf1;
-        color: #0c5460;
+        background: linear-gradient(135deg, #3498db, #2980b9);
+        color: white;
       }
+      
       .modal {
         position: fixed;
         top: 0;
         left: 0;
         width: 100%;
         height: 100%;
-        background: rgba(0,0,0,0.5);
+        background: rgba(0,0,0,0.8);
         display: flex;
         align-items: center;
         justify-content: center;
         z-index: 1000;
+        backdrop-filter: blur(5px);
       }
+      
       .modal-content {
-        background: white;
-        padding: 20px;
-        border-radius: 10px;
+        background: linear-gradient(135deg, #2c3e50, #34495e);
+        padding: 30px;
+        border-radius: 16px;
         max-width: 600px;
         width: 90%;
         max-height: 80vh;
         overflow-y: auto;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        border: 2px solid #e67e22;
+        color: #f8f9fa;
       }
+      
+      .modal-content h3 {
+        color: #ffffff;
+        border-bottom: 2px solid #e67e22;
+        padding-bottom: 8px;
+      }
+      
+      .modal-content h4 {
+        color: #f8f9fa;
+      }
+      
+      .modal-content p, .modal-content li {
+        color: #f8f9fa;
+      }
+      
+      .modal-content strong {
+        color: #ffffff;
+        font-weight: 600;
+      }
+      
       .detail-section {
         margin: 16px 0;
         padding: 12px;
-        background: #f8f9fa;
-        border-radius: 4px;
-      }
-      .error {
-        margin-top: 10px;
-        color: #b00020;
-        font-weight: 500;
-      }
-      .success {
-        margin-top: 10px;
-        color: #2e7d32;
-        font-weight: 500;
-      }
-      .info {
-        color: #666;
-        font-style: italic;
-        margin: 8px 0;
-      }
-      table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 8px;
-      }
-      table th,
-      table td {
-        text-align: left;
-        padding: 8px;
-        border-bottom: 1px solid #eee;
-        font-size: 14px;
-      }
-      table th {
-        background: #f5f5f5;
-        font-weight: 600;
+        background: rgba(52, 73, 94, 0.6);
+        border-radius: 8px;
+        border-left: 4px solid #e67e22;
       }
     `
   ]
