@@ -12,12 +12,17 @@ import type { WorkOrder, Appointment, User, Vehicle, WorkOrderTask } from '../..
   selector: 'app-manager-workorders-page',
   imports: [CommonModule, FormsModule],
   template: `
-    <div class="wrap">
-      <h2>Ordres de réparation (manager)</h2>
+    <div class="mechanic-theme">
+      <div class="mechanic-wrap">
+        <div class="mechanic-banner">
+          👔 Interface Manager - Supervision des Réparations 👔
+        </div>
+        
+        <h2 class="mechanic-title">📋 Gestion des Ordres de Réparation</h2>
 
-      <div class="card">
-        <h3>Estimations à réviser</h3>
-        <table>
+      <div class="mechanic-card">
+        <h3>🔍 Estimations à Réviser</h3>
+        <table class="mechanic-table">
           <thead>
             <tr>
               <th>Date</th>
@@ -36,8 +41,8 @@ import type { WorkOrder, Appointment, User, Vehicle, WorkOrderTask } from '../..
               <td>{{ getUserName(w.mechanicId) || 'Non assigné' }}</td>
               <td>{{ w.total }}€</td>
               <td>
-                <button (click)="reviewEstimation(w)" class="review-btn">
-                  Réviser
+                <button (click)="reviewEstimation(w)" class="mechanic-btn mechanic-btn-info">
+                  👁️ Réviser
                 </button>
               </td>
             </tr>

@@ -8,29 +8,23 @@ import { AuthService } from './core/auth/auth.service';
   standalone: true,
   imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, AsyncPipe],
   template: `
-    <div class="layout">
+    <div class="layout page-mechanic-theme">
       <header class="header">
-        <a class="brand" routerLink="/dashboard">m1p12mean-xxx-yyy</a>
+        <a class="brand" routerLink="/dashboard">🔧 Garage Pro System 🔧</a>
         <nav class="nav" *ngIf="user$ | async as user; else guest">
-          <a routerLink="/dashboard" routerLinkActive="active">Dashboard</a>
-          <a *ngIf="user.role === 'client'" routerLink="/client/vehicles" routerLinkActive="active">Véhicules</a>
-          <a *ngIf="user.role === 'client'" routerLink="/client/appointments" routerLinkActive="active">Rendez-vous</a>
-          <a *ngIf="user.role === 'mechanic'" routerLink="/mechanic/appointments" routerLinkActive="active"
-            >Rendez-vous</a
-          >
-          <a *ngIf="user.role === 'mechanic'" routerLink="/mechanic/workorders" routerLinkActive="active"
-            >Ordres</a
-          >
-          <a *ngIf="user.role === 'manager'" routerLink="/manager/appointments" routerLinkActive="active"
-            >Rendez-vous</a
-          >
-          <a *ngIf="user.role === 'manager'" routerLink="/manager/workorders" routerLinkActive="active">Ordres</a>
-          <a *ngIf="user.role === 'manager'" routerLink="/manager/vehicles" routerLinkActive="active">Véhicules</a>
-          <button class="logout" (click)="logout()">Déconnexion</button>
+          <a routerLink="/dashboard" routerLinkActive="active">🏠 Dashboard</a>
+          <a *ngIf="user.role === 'client'" routerLink="/client/vehicles" routerLinkActive="active">🚗 Véhicules</a>
+          <a *ngIf="user.role === 'client'" routerLink="/client/appointments" routerLinkActive="active">📅 Rendez-vous</a>
+          <a *ngIf="user.role === 'client'" routerLink="/client/workorders" routerLinkActive="active">💰 Estimations</a>
+          <a *ngIf="user.role === 'mechanic'" routerLink="/mechanic/workorders" routerLinkActive="active">🔧 Atelier</a>
+          <a *ngIf="user.role === 'manager'" routerLink="/manager/appointments" routerLinkActive="active">📋 Rendez-vous</a>
+          <a *ngIf="user.role === 'manager'" routerLink="/manager/workorders" routerLinkActive="active">⚙️ Ordres</a>
+          <a *ngIf="user.role === 'manager'" routerLink="/manager/vehicles" routerLinkActive="active">🚙 Véhicules</a>
+          <button class="logout" (click)="logout()">🚪 Déconnexion</button>
         </nav>
         <ng-template #guest>
           <nav class="nav">
-            <a routerLink="/login" routerLinkActive="active">Connexion</a>
+            <a routerLink="/login" routerLinkActive="active">🔐 Connexion</a>
           </nav>
         </ng-template>
       </header>
@@ -40,9 +34,9 @@ import { AuthService } from './core/auth/auth.service';
       </main>
 
       <footer class="footer">
-        <span>Nom Prénom COMPLET 1</span>
+        <span>🛠️ Garage Management System v2.0</span>
         <span>·</span>
-        <span>Nom Prénom COMPLET 2</span>
+        <span>Interface Professionnelle Mécanicien</span>
       </footer>
     </div>
   `,

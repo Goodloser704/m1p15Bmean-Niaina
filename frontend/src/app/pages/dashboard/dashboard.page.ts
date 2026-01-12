@@ -8,97 +8,77 @@ import { AuthService } from '../../core/auth/auth.service';
   selector: 'app-dashboard-page',
   imports: [CommonModule, RouterLink],
   template: `
-    <div class="wrap">
-      <div class="version-banner">
-        🚀 Version 2.0 - Nouveau Workflow d'Estimation Déployé !
-      </div>
-      
-      <h2>Tableau de bord</h2>
-      <p *ngIf="!user()">Vous devez vous connecter.</p>
+    <div class="mechanic-theme">
+      <div class="mechanic-wrap">
+        <div class="mechanic-banner">
+          🚀 Garage Management System v2.0 - Interface Professionnelle 🚀
+        </div>
+        
+        <h2 class="mechanic-title">🏠 Tableau de Bord Central 🏠</h2>
+        <p *ngIf="!user()" class="mechanic-alert mechanic-alert-info">Vous devez vous connecter.</p>
 
-      <div class="grid" *ngIf="user() as u">
-        <a class="tile" *ngIf="u.role === 'client'" routerLink="/client/vehicles">Mes véhicules</a>
-        <a class="tile" *ngIf="u.role === 'client'" routerLink="/client/appointments">Mes rendez-vous</a>
-        <a class="tile new-feature" *ngIf="u.role === 'client'" routerLink="/client/workorders">
-          🆕 Mes estimations
-        </a>
+        <div class="mechanic-grid" *ngIf="user() as u">
+          <a class="mechanic-card mechanic-btn" *ngIf="u.role === 'client'" routerLink="/client/vehicles">
+            <h3>🚗 Mes Véhicules</h3>
+            <p>Gérer votre flotte automobile</p>
+          </a>
+          
+          <a class="mechanic-card mechanic-btn" *ngIf="u.role === 'client'" routerLink="/client/appointments">
+            <h3>📅 Mes Rendez-vous</h3>
+            <p>Planifier vos interventions</p>
+          </a>
+          
+          <a class="mechanic-card mechanic-btn mechanic-btn-success" *ngIf="u.role === 'client'" routerLink="/client/workorders">
+            <h3>🆕 Mes Estimations</h3>
+            <p>Suivre vos devis et factures</p>
+          </a>
 
-        <a class="tile new-feature" *ngIf="u.role === 'mechanic'" routerLink="/mechanic/workorders">
-          🆕 Estimations et réparations
-        </a>
+          <a class="mechanic-card mechanic-btn mechanic-btn-warning" *ngIf="u.role === 'mechanic'" routerLink="/mechanic/workorders">
+            <h3>🆕 Atelier Mécanicien</h3>
+            <p>Diagnostic et réparations</p>
+          </a>
 
-        <a class="tile" *ngIf="u.role === 'manager'" routerLink="/manager/appointments">Rendez-vous</a>
-        <a class="tile updated-feature" *ngIf="u.role === 'manager'" routerLink="/manager/workorders">
-          ⚡ Ordres de réparation (Mis à jour)
-        </a>
-        <a class="tile" *ngIf="u.role === 'manager'" routerLink="/manager/vehicles">Véhicules</a>
+          <a class="mechanic-card mechanic-btn" *ngIf="u.role === 'manager'" routerLink="/manager/appointments">
+            <h3>📋 Gestion Rendez-vous</h3>
+            <p>Planification et assignation</p>
+          </a>
+          
+          <a class="mechanic-card mechanic-btn mechanic-btn-info" *ngIf="u.role === 'manager'" routerLink="/manager/workorders">
+            <h3>⚡ Ordres de Réparation</h3>
+            <p>Supervision des travaux</p>
+          </a>
+          
+          <a class="mechanic-card mechanic-btn" *ngIf="u.role === 'manager'" routerLink="/manager/vehicles">
+            <h3>🚙 Base Véhicules</h3>
+            <p>Inventaire complet</p>
+          </a>
+        </div>
       </div>
     </div>
   `,
   styles: [
     `
-      .wrap {
-        max-width: 980px;
-        margin: 16px auto;
-        padding: 0 12px;
-      }
-      .version-banner {
-        background: linear-gradient(135deg, #ff6b6b, #4ecdc4);
-        color: white;
-        padding: 16px;
-        border-radius: 10px;
-        text-align: center;
-        font-weight: 600;
-        font-size: 18px;
-        margin-bottom: 20px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        animation: pulse 2s infinite;
-      }
-      @keyframes pulse {
-        0% { transform: scale(1); }
-        50% { transform: scale(1.02); }
-        100% { transform: scale(1); }
-      }
-      .grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-        gap: 12px;
-        margin-top: 12px;
-      }
-      .tile {
-        display: block;
-        padding: 14px;
-        border: 1px solid #e3e3e3;
-        border-radius: 10px;
-        background: #fff;
+      .mechanic-card {
         text-decoration: none;
         color: inherit;
         transition: all 0.3s ease;
+        cursor: pointer;
       }
-      .tile:hover {
-        border-color: #0b57d0;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      
+      .mechanic-card h3 {
+        margin-bottom: 8px;
       }
-      .new-feature {
-        background: linear-gradient(135deg, #4caf50, #45a049);
-        color: white;
-        border: none;
-        font-weight: 600;
+      
+      .mechanic-card p {
+        margin: 0;
+        font-size: 0.9em;
+        opacity: 0.8;
+        font-style: italic;
       }
-      .new-feature:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 6px 16px rgba(76, 175, 80, 0.3);
-      }
-      .updated-feature {
-        background: linear-gradient(135deg, #2196f3, #1976d2);
-        color: white;
-        border: none;
-        font-weight: 600;
-      }
-      .updated-feature:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 6px 16px rgba(33, 150, 243, 0.3);
+      
+      .mechanic-card:hover {
+        color: inherit;
+        text-decoration: none;
       }
     `
   ]
