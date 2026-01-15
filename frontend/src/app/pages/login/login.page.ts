@@ -1,7 +1,7 @@
 import { Component, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../core/auth/auth.service';
 import type { UserRole } from '../../core/models';
 
@@ -10,7 +10,7 @@ type Preset = { label: string; email: string; password: string; role: UserRole }
 @Component({
   standalone: true,
   selector: 'app-login-page',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterModule],
   template: `
     <div class="mechanic-theme">
       <div class="mechanic-wrap">
@@ -53,6 +53,10 @@ type Preset = { label: string; email: string; password: string; role: UserRole }
             <span *ngIf="!loading()">🚀 Se connecter</span>
             <span *ngIf="loading()">⏳ Connexion...</span>
           </button>
+
+          <div class="register-link">
+            Pas encore de compte ? <a routerLink="/register">S'inscrire</a>
+          </div>
 
           <p class="mechanic-alert mechanic-alert-error" *ngIf="error()">{{ error() }}</p>
         </div>
@@ -114,6 +118,25 @@ type Preset = { label: string; email: string; password: string; role: UserRole }
         opacity: 0.6;
         cursor: not-allowed;
         animation: pulse 1.5s ease-in-out infinite;
+      }
+
+      .register-link {
+        text-align: center;
+        margin-top: 20px;
+        color: #f8f9fa;
+        font-size: 14px;
+      }
+
+      .register-link a {
+        color: #e67e22;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+      }
+
+      .register-link a:hover {
+        text-decoration: underline;
+        color: #f39c12;
       }
     `
   ]

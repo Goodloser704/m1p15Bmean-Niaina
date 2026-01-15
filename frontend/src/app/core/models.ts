@@ -1,10 +1,15 @@
 export type UserRole = 'client' | 'mechanic' | 'manager';
+export type UserStatus = 'pending' | 'approved' | 'rejected';
 
 export interface User {
   id: string;
   fullName: string;
   email: string;
   role: UserRole;
+  status?: UserStatus;
+  phone?: string;
+  address?: string;
+  createdAt?: string;
 }
 
 export interface Vehicle {

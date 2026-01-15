@@ -52,6 +52,11 @@ import { AuthService } from '../../core/auth/auth.service';
             <h3>🚙 Base Véhicules</h3>
             <p>Inventaire complet</p>
           </a>
+
+          <a class="mechanic-card mechanic-btn mechanic-btn-danger" *ngIf="u.role === 'manager'" routerLink="/manager/registrations">
+            <h3>📋 Inscriptions en attente</h3>
+            <p>Valider les nouveaux utilisateurs</p>
+          </a>
         </div>
       </div>
     </div>

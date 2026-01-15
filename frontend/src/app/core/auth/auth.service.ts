@@ -5,6 +5,7 @@ import { API_BASE_URL } from '../api.config';
 import type { User } from '../models';
 
 type LoginResponse = { token: string; user: User };
+type RegisterResponse = { token?: string; user: User; message: string };
 type MeResponse = { user: User };
 
 const TOKEN_KEY = 'auth_token';
@@ -44,6 +45,27 @@ export class AuthService {
     );
     localStorage.setItem(TOKEN_KEY, res.token);
     this.userSubject.next(res.user);
+  }
+
+  async register(data: {
+    fullName: string;
+    email: string;
+    password: string;
+    role: string;
+    phone?: string;
+    address?: string;
+  }): Promise<RegisterResponse> {
+    const res = await firstValueFrom(
+      this.http.post<RegisterResponse>(`${API_BASE_URL}/api/auth/register`, data)
+    );
+    
+    // Si un token est retourné (client), on se connecte automatiquement
+    if (res.token) {
+      localStorage.setItem(TOKEN_KEY, res.token);
+      this.userSubject.next(res.user);
+    }
+    
+    return res;
   }
 
   logout(): void {
