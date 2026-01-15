@@ -99,7 +99,7 @@ import { AuthService } from '../../core/auth/auth.service';
                 [disabled]="processing()"
                 class="submit-btn"
               >
-                {{ processing() ? 'Inscription en cours...' : 'S\'inscrire' }}
+                S'inscrire
               </button>
             </form>
 
