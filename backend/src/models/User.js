@@ -13,13 +13,35 @@ const userSchema = new mongoose.Schema(
       default: "approved" 
     },
     phone: { type: String, trim: true },
-    address: { type: String, trim: true }
+    address: { type: String, trim: true },
+    // Informations spécifiques aux mécaniciens
+    contractType: { 
+      type: String, 
+      enum: ["monthly", "daily", "commission"],
+      required: function() { return this.role === "mechanic"; }
+    },
+    baseSalary: { 
+      type: Number, 
+      default: 0,
+      required: function() { return this.role === "mechanic" && this.contractType !== "commission"; }
+    },
+    commissionRate: { 
+      type: Number, 
+      default: 0,
+      min: 0,
+      max: 100
+    },
+    bankDetails: {
+      iban: { type: String, trim: true },
+      bic: { type: String, trim: true },
+      bankName: { type: String, trim: true }
+    }
   },
   { timestamps: true }
 );
 
 userSchema.methods.toSafeJSON = function toSafeJSON() {
-  return {
+  const base = {
     id: String(this._id),
     fullName: this.fullName,
     email: this.email,
@@ -29,6 +51,16 @@ userSchema.methods.toSafeJSON = function toSafeJSON() {
     address: this.address,
     createdAt: this.createdAt
   };
+
+  // Ajouter les informations de contrat pour les mécaniciens
+  if (this.role === 'mechanic') {
+    base.contractType = this.contractType;
+    base.baseSalary = this.baseSalary;
+    base.commissionRate = this.commissionRate;
+    base.bankDetails = this.bankDetails;
+  }
+
+  return base;
 };
 
 module.exports = mongoose.model("User", userSchema);

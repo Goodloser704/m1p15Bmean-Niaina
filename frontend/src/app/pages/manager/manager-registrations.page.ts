@@ -28,6 +28,8 @@ import type { User } from '../../core/models';
                 <th>Nom</th>
                 <th>Email</th>
                 <th>Rôle</th>
+                <th>Type de contrat</th>
+                <th>Salaire/Commission</th>
                 <th>Téléphone</th>
                 <th>Date d'inscription</th>
                 <th>Actions</th>
@@ -41,6 +43,25 @@ import type { User } from '../../core/models';
                   <span class="role-badge" [class]="'role-' + user.role">
                     {{ getRoleLabel(user.role) }}
                   </span>
+                </td>
+                <td>
+                  <span *ngIf="user.role === 'mechanic' && user.contractType" class="contract-badge" [class]="'contract-' + user.contractType">
+                    {{ getContractLabel(user.contractType) }}
+                  </span>
+                  <span *ngIf="user.role !== 'mechanic'">-</span>
+                </td>
+                <td>
+                  <div *ngIf="user.role === 'mechanic'" class="salary-info">
+                    <div *ngIf="user.contractType !== 'commission' && user.baseSalary">
+                      <strong>{{ user.baseSalary }}€</strong>
+                      <small>{{ user.contractType === 'monthly' ? '/mois' : '/jour' }}</small>
+                    </div>
+                    <div *ngIf="user.commissionRate">
+                      <strong>{{ user.commissionRate }}%</strong>
+                      <small>commission</small>
+                    </div>
+                  </div>
+                  <span *ngIf="user.role !== 'mechanic'">-</span>
                 </td>
                 <td>{{ user.phone || '-' }}</td>
                 <td>{{ user.createdAt ? (user.createdAt | date:'short') : '-' }}</td>
@@ -128,6 +149,51 @@ import type { User } from '../../core/models';
       color: white;
     }
 
+    .contract-badge {
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .contract-monthly {
+      background: linear-gradient(135deg, #9b59b6, #8e44ad);
+      color: white;
+    }
+
+    .contract-daily {
+      background: linear-gradient(135deg, #e67e22, #d35400);
+      color: white;
+    }
+
+    .contract-commission {
+      background: linear-gradient(135deg, #16a085, #1abc9c);
+      color: white;
+    }
+
+    .salary-info {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .salary-info div {
+      display: flex;
+      align-items: baseline;
+      gap: 4px;
+    }
+
+    .salary-info strong {
+      color: #e67e22;
+      font-size: 14px;
+    }
+
+    .salary-info small {
+      color: #bdc3c7;
+      font-size: 11px;
+    }
+
     .action-buttons {
       display: flex;
       gap: 8px;
@@ -204,6 +270,16 @@ export class ManagerRegistrationsPageComponent {
       'client': 'Client'
     };
     return labels[role] || role;
+  }
+
+  getContractLabel(contractType?: string): string {
+    if (!contractType) return '-';
+    const labels: Record<string, string> = {
+      'monthly': 'Mensuel',
+      'daily': 'Journalier',
+      'commission': 'Commission'
+    };
+    return labels[contractType] || contractType;
   }
 
   async approveUser(userId: string): Promise<void> {

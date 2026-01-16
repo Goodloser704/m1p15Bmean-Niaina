@@ -54,6 +54,14 @@ export class AuthService {
     role: string;
     phone?: string;
     address?: string;
+    contractType?: string;
+    baseSalary?: number;
+    commissionRate?: number;
+    bankDetails?: {
+      iban?: string;
+      bic?: string;
+      bankName?: string;
+    };
   }): Promise<RegisterResponse> {
     const res = await firstValueFrom(
       this.http.post<RegisterResponse>(`${API_BASE_URL}/api/auth/register`, data)

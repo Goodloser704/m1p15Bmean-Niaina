@@ -30,7 +30,10 @@ router.post("/login", async (req, res) => {
 
 router.post("/register", async (req, res) => {
   try {
-    const { fullName, email, password, role, phone, address } = req.body || {};
+    const { 
+      fullName, email, password, role, phone, address,
+      contractType, baseSalary, commissionRate, bankDetails
+    } = req.body || {};
     
     // Validation
     if (!fullName || !email || !password || !role) {
@@ -39,6 +42,17 @@ router.post("/register", async (req, res) => {
 
     if (!["client", "mechanic", "manager"].includes(role)) {
       return res.status(400).json({ message: "Invalid role" });
+    }
+
+    // Validation spécifique pour les mécaniciens
+    if (role === "mechanic") {
+      if (!contractType || !["monthly", "daily", "commission"].includes(contractType)) {
+        return res.status(400).json({ message: "Valid contract type is required for mechanics (monthly, daily, or commission)" });
+      }
+
+      if (contractType !== "commission" && (!baseSalary || baseSalary <= 0)) {
+        return res.status(400).json({ message: "Base salary is required for monthly and daily contracts" });
+      }
     }
 
     // Vérifier si l'email existe déjà
@@ -57,7 +71,7 @@ router.post("/register", async (req, res) => {
     }
 
     // Créer l'utilisateur
-    const user = new User({
+    const userData = {
       fullName: String(fullName).trim(),
       email: String(email).toLowerCase().trim(),
       passwordHash,
@@ -65,8 +79,24 @@ router.post("/register", async (req, res) => {
       status,
       phone: phone ? String(phone).trim() : undefined,
       address: address ? String(address).trim() : undefined
-    });
+    };
 
+    // Ajouter les informations de contrat pour les mécaniciens
+    if (role === "mechanic") {
+      userData.contractType = contractType;
+      userData.baseSalary = contractType !== "commission" ? Number(baseSalary) : 0;
+      userData.commissionRate = commissionRate ? Number(commissionRate) : 0;
+      
+      if (bankDetails) {
+        userData.bankDetails = {
+          iban: bankDetails.iban ? String(bankDetails.iban).trim() : undefined,
+          bic: bankDetails.bic ? String(bankDetails.bic).trim() : undefined,
+          bankName: bankDetails.bankName ? String(bankDetails.bankName).trim() : undefined
+        };
+      }
+    }
+
+    const user = new User(userData);
     await user.save();
 
     // Si c'est un client, connexion automatique

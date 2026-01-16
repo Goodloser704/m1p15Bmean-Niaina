@@ -1,5 +1,12 @@
 export type UserRole = 'client' | 'mechanic' | 'manager';
 export type UserStatus = 'pending' | 'approved' | 'rejected';
+export type ContractType = 'monthly' | 'daily' | 'commission';
+
+export interface BankDetails {
+  iban?: string;
+  bic?: string;
+  bankName?: string;
+}
 
 export interface User {
   id: string;
@@ -10,6 +17,11 @@ export interface User {
   phone?: string;
   address?: string;
   createdAt?: string;
+  // Informations spécifiques aux mécaniciens
+  contractType?: ContractType;
+  baseSalary?: number;
+  commissionRate?: number;
+  bankDetails?: BankDetails;
 }
 
 export interface Vehicle {
