@@ -92,88 +92,7 @@ import { AuthService } from '../../core/auth/auth.service';
 
               <div class="info-box" *ngIf="role === 'mechanic' || role === 'manager'">
                 ⚠️ Les inscriptions de mécaniciens et managers nécessitent une validation par un manager existant.
-              </div>
-
-              <!-- Informations de contrat pour les mécaniciens -->
-              <div class="contract-section" *ngIf="role === 'mechanic'">
-                <h3>📋 Informations de Contrat</h3>
-                
-                <div class="form-group">
-                  <label>Type de contrat *</label>
-                  <select [(ngModel)]="contractType" name="contractType" required>
-                    <option value="">-- Sélectionner --</option>
-                    <option value="monthly">Mensuel (Salaire fixe par mois)</option>
-                    <option value="daily">Journalier (Salaire fixe par jour)</option>
-                    <option value="commission">Commission (% sur réparations)</option>
-                  </select>
-                </div>
-
-                <div class="form-group" *ngIf="contractType && contractType !== 'commission'">
-                  <label>Salaire de base * (€)</label>
-                  <input 
-                    type="number" 
-                    [(ngModel)]="baseSalary" 
-                    name="baseSalary"
-                    [placeholder]="contractType === 'monthly' ? '2000' : '80'"
-                    min="0"
-                    step="0.01"
-                    required
-                  />
-                  <small class="hint">
-                    {{ contractType === 'monthly' ? 'Salaire mensuel brut' : 'Salaire journalier brut' }}
-                  </small>
-                </div>
-
-                <div class="form-group" *ngIf="contractType">
-                  <label>Taux de commission (%) {{ contractType === 'commission' ? '*' : '(optionnel)' }}</label>
-                  <input 
-                    type="number" 
-                    [(ngModel)]="commissionRate" 
-                    name="commissionRate"
-                    placeholder="10"
-                    min="0"
-                    max="100"
-                    step="0.1"
-                    [required]="contractType === 'commission'"
-                  />
-                  <small class="hint">
-                    Pourcentage du montant total des réparations
-                  </small>
-                </div>
-
-                <div class="bank-section">
-                  <h4>🏦 Coordonnées Bancaires (optionnel)</h4>
-                  
-                  <div class="form-group">
-                    <label>IBAN</label>
-                    <input 
-                      type="text" 
-                      [(ngModel)]="iban" 
-                      name="iban"
-                      placeholder="FR76 1234 5678 9012 3456 7890 123"
-                    />
-                  </div>
-
-                  <div class="form-group">
-                    <label>BIC/SWIFT</label>
-                    <input 
-                      type="text" 
-                      [(ngModel)]="bic" 
-                      name="bic"
-                      placeholder="BNPAFRPP"
-                    />
-                  </div>
-
-                  <div class="form-group">
-                    <label>Nom de la banque</label>
-                    <input 
-                      type="text" 
-                      [(ngModel)]="bankName" 
-                      name="bankName"
-                      placeholder="BNP Paribas"
-                    />
-                  </div>
-                </div>
+                <span *ngIf="role === 'mechanic'"><br>Le manager configurera votre contrat et salaire lors de l'approbation.</span>
               </div>
 
               <button 
@@ -269,43 +188,6 @@ import { AuthService } from '../../core/auth/auth.service';
       text-align: center;
     }
 
-    .contract-section {
-      background: rgba(52, 73, 94, 0.3);
-      border: 2px solid #34495e;
-      border-radius: 12px;
-      padding: 20px;
-      margin-bottom: 20px;
-    }
-
-    .contract-section h3 {
-      color: #e67e22;
-      margin-top: 0;
-      margin-bottom: 20px;
-      text-align: center;
-      font-size: 1.2em;
-    }
-
-    .bank-section {
-      margin-top: 20px;
-      padding-top: 20px;
-      border-top: 1px solid #34495e;
-    }
-
-    .bank-section h4 {
-      color: #f8f9fa;
-      margin-top: 0;
-      margin-bottom: 15px;
-      font-size: 1em;
-    }
-
-    small.hint {
-      display: block;
-      color: #bdc3c7;
-      font-size: 12px;
-      margin-top: 4px;
-      font-style: italic;
-    }
-
     .submit-btn {
       width: 100%;
       padding: 14px;
@@ -378,14 +260,6 @@ export class RegisterPageComponent {
   phone = '';
   address = '';
   
-  // Informations de contrat pour mécaniciens
-  contractType = '';
-  baseSalary: number | null = null;
-  commissionRate: number | null = null;
-  iban = '';
-  bic = '';
-  bankName = '';
-  
   processing = signal(false);
   error = signal<string | null>(null);
   success = signal<string | null>(null);
@@ -417,24 +291,6 @@ export class RegisterPageComponent {
       return;
     }
 
-    // Validation spécifique pour les mécaniciens
-    if (this.role === 'mechanic') {
-      if (!this.contractType) {
-        this.error.set('Veuillez sélectionner un type de contrat');
-        return;
-      }
-
-      if (this.contractType !== 'commission' && (!this.baseSalary || this.baseSalary <= 0)) {
-        this.error.set('Veuillez indiquer un salaire de base valide');
-        return;
-      }
-
-      if (this.contractType === 'commission' && (!this.commissionRate || this.commissionRate <= 0)) {
-        this.error.set('Veuillez indiquer un taux de commission valide');
-        return;
-      }
-    }
-
     this.processing.set(true);
 
     try {
@@ -446,21 +302,6 @@ export class RegisterPageComponent {
         phone: this.phone || undefined,
         address: this.address || undefined
       };
-
-      // Ajouter les informations de contrat pour les mécaniciens
-      if (this.role === 'mechanic') {
-        registerData.contractType = this.contractType;
-        registerData.baseSalary = this.baseSalary || 0;
-        registerData.commissionRate = this.commissionRate || 0;
-
-        if (this.iban || this.bic || this.bankName) {
-          registerData.bankDetails = {
-            iban: this.iban || undefined,
-            bic: this.bic || undefined,
-            bankName: this.bankName || undefined
-          };
-        }
-      }
 
       const result = await this.authService.register(registerData);
 

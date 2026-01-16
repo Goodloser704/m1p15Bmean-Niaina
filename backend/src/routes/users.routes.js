@@ -32,7 +32,7 @@ router.get("/pending", requireAuth, requireRole("manager"), async (req, res) => 
 router.patch("/:userId/status", requireAuth, requireRole("manager"), async (req, res) => {
   try {
     const { userId } = req.params;
-    const { status } = req.body || {};
+    const { status, contractType, baseSalary, commissionRate, bankDetails } = req.body || {};
 
     if (!["approved", "rejected"].includes(status)) {
       return res.status(400).json({ message: "Invalid status. Must be 'approved' or 'rejected'" });
@@ -45,6 +45,34 @@ router.patch("/:userId/status", requireAuth, requireRole("manager"), async (req,
 
     if (user.status !== "pending") {
       return res.status(400).json({ message: "User is not pending approval" });
+    }
+
+    // Si on approuve un mécanicien, les infos de contrat sont obligatoires
+    if (status === "approved" && user.role === "mechanic") {
+      if (!contractType || !["monthly", "daily", "commission"].includes(contractType)) {
+        return res.status(400).json({ message: "Valid contract type is required for mechanic approval (monthly, daily, or commission)" });
+      }
+
+      if (contractType !== "commission" && (!baseSalary || baseSalary <= 0)) {
+        return res.status(400).json({ message: "Base salary is required for monthly and daily contracts" });
+      }
+
+      if (contractType === "commission" && (!commissionRate || commissionRate <= 0)) {
+        return res.status(400).json({ message: "Commission rate is required for commission-based contracts" });
+      }
+
+      // Configurer le contrat
+      user.contractType = contractType;
+      user.baseSalary = contractType !== "commission" ? Number(baseSalary) : 0;
+      user.commissionRate = Number(commissionRate) || 0;
+
+      if (bankDetails) {
+        user.bankDetails = {
+          iban: bankDetails.iban ? String(bankDetails.iban).trim() : undefined,
+          bic: bankDetails.bic ? String(bankDetails.bic).trim() : undefined,
+          bankName: bankDetails.bankName ? String(bankDetails.bankName).trim() : undefined
+        };
+      }
     }
 
     user.status = status;

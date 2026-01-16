@@ -1,12 +1,13 @@
 import { Component, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { RegistrationsService } from '../../core/services/registrations.service';
 import type { User } from '../../core/models';
 
 @Component({
   standalone: true,
   selector: 'app-manager-registrations-page',
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   template: `
     <div class="page-mechanic-theme">
       <div class="wrap">
@@ -28,8 +29,6 @@ import type { User } from '../../core/models';
                 <th>Nom</th>
                 <th>Email</th>
                 <th>Rôle</th>
-                <th>Type de contrat</th>
-                <th>Salaire/Commission</th>
                 <th>Téléphone</th>
                 <th>Date d'inscription</th>
                 <th>Actions</th>
@@ -44,31 +43,12 @@ import type { User } from '../../core/models';
                     {{ getRoleLabel(user.role) }}
                   </span>
                 </td>
-                <td>
-                  <span *ngIf="user.role === 'mechanic' && user.contractType" class="contract-badge" [class]="'contract-' + user.contractType">
-                    {{ getContractLabel(user.contractType) }}
-                  </span>
-                  <span *ngIf="user.role !== 'mechanic'">-</span>
-                </td>
-                <td>
-                  <div *ngIf="user.role === 'mechanic'" class="salary-info">
-                    <div *ngIf="user.contractType !== 'commission' && user.baseSalary">
-                      <strong>{{ user.baseSalary }}€</strong>
-                      <small>{{ user.contractType === 'monthly' ? '/mois' : '/jour' }}</small>
-                    </div>
-                    <div *ngIf="user.commissionRate">
-                      <strong>{{ user.commissionRate }}%</strong>
-                      <small>commission</small>
-                    </div>
-                  </div>
-                  <span *ngIf="user.role !== 'mechanic'">-</span>
-                </td>
                 <td>{{ user.phone || '-' }}</td>
                 <td>{{ user.createdAt ? (user.createdAt | date:'short') : '-' }}</td>
                 <td>
                   <div class="action-buttons">
                     <button 
-                      (click)="approveUser(user.id)" 
+                      (click)="user.role === 'mechanic' ? openContractModal(user) : approveUser(user.id)" 
                       [disabled]="processing()"
                       class="approve-btn"
                     >
@@ -86,6 +66,112 @@ import type { User } from '../../core/models';
               </tr>
             </tbody>
           </table>
+        </div>
+
+        <!-- Modal de configuration du contrat -->
+        <div class="modal" *ngIf="showContractModal()" (click)="closeContractModal()">
+          <div class="modal-content" (click)="$event.stopPropagation()">
+            <h3>📋 Configuration du Contrat</h3>
+            
+            <div *ngIf="selectedUser()">
+              <p class="user-info">
+                <strong>Mécanicien :</strong> {{ selectedUser()!.fullName }}<br>
+                <strong>Email :</strong> {{ selectedUser()!.email }}
+              </p>
+
+              <div class="form-group">
+                <label>Type de contrat *</label>
+                <select [(ngModel)]="contractType" class="mechanic-select">
+                  <option value="">-- Sélectionner --</option>
+                  <option value="monthly">Mensuel (Salaire fixe par mois)</option>
+                  <option value="daily">Journalier (Salaire fixe par jour)</option>
+                  <option value="commission">Commission (% sur réparations)</option>
+                </select>
+              </div>
+
+              <div class="form-group" *ngIf="contractType && contractType !== 'commission'">
+                <label>Salaire de base * (€)</label>
+                <input 
+                  type="number" 
+                  [(ngModel)]="baseSalary" 
+                  [placeholder]="contractType === 'monthly' ? '2000' : '80'"
+                  min="0"
+                  step="0.01"
+                  class="mechanic-input"
+                />
+                <small class="hint">
+                  {{ contractType === 'monthly' ? 'Salaire mensuel brut' : 'Salaire journalier brut' }}
+                </small>
+              </div>
+
+              <div class="form-group" *ngIf="contractType">
+                <label>Taux de commission (%) {{ contractType === 'commission' ? '*' : '(optionnel)' }}</label>
+                <input 
+                  type="number" 
+                  [(ngModel)]="commissionRate" 
+                  placeholder="10"
+                  min="0"
+                  max="100"
+                  step="0.1"
+                  class="mechanic-input"
+                />
+                <small class="hint">
+                  Pourcentage du montant total des réparations
+                </small>
+              </div>
+
+              <div class="bank-section">
+                <h4>🏦 Coordonnées Bancaires (optionnel)</h4>
+                
+                <div class="form-group">
+                  <label>IBAN</label>
+                  <input 
+                    type="text" 
+                    [(ngModel)]="iban" 
+                    placeholder="FR76 1234 5678 9012 3456 7890 123"
+                    class="mechanic-input"
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label>BIC/SWIFT</label>
+                  <input 
+                    type="text" 
+                    [(ngModel)]="bic" 
+                    placeholder="BNPAFRPP"
+                    class="mechanic-input"
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label>Nom de la banque</label>
+                  <input 
+                    type="text" 
+                    [(ngModel)]="bankName" 
+                    placeholder="BNP Paribas"
+                    class="mechanic-input"
+                  />
+                </div>
+              </div>
+
+              <div class="modal-actions">
+                <button 
+                  (click)="approveWithContract()" 
+                  [disabled]="processing()"
+                  class="mechanic-btn mechanic-btn-success"
+                >
+                  ✓ Approuver avec ce contrat
+                </button>
+                <button 
+                  (click)="closeContractModal()" 
+                  [disabled]="processing()"
+                  class="mechanic-btn"
+                >
+                  Annuler
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div class="card" *ngIf="pendingUsers().length === 0">
@@ -240,6 +326,86 @@ import type { User } from '../../core/models';
       cursor: not-allowed;
       transform: none;
     }
+
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      backdrop-filter: blur(5px);
+    }
+
+    .modal-content {
+      background: linear-gradient(135deg, #2c3e50, #34495e);
+      padding: 30px;
+      border-radius: 16px;
+      max-width: 600px;
+      width: 90%;
+      max-height: 80vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+      border: 2px solid #e67e22;
+    }
+
+    .modal-content h3 {
+      color: #ffffff;
+      margin-top: 0;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .user-info {
+      background: rgba(52, 73, 94, 0.5);
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      color: #f8f9fa;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      color: #f8f9fa;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+
+    .bank-section {
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid #34495e;
+    }
+
+    .bank-section h4 {
+      color: #f8f9fa;
+      margin-top: 0;
+      margin-bottom: 15px;
+    }
+
+    small.hint {
+      display: block;
+      color: #bdc3c7;
+      font-size: 12px;
+      margin-top: 4px;
+      font-style: italic;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+      margin-top: 24px;
+      flex-wrap: wrap;
+    }
   `]
 })
 export class ManagerRegistrationsPageComponent {
@@ -247,6 +413,16 @@ export class ManagerRegistrationsPageComponent {
   processing = signal(false);
   error = signal<string | null>(null);
   success = signal<string | null>(null);
+  showContractModal = signal(false);
+  selectedUser = signal<User | null>(null);
+
+  // Données du contrat
+  contractType = '';
+  baseSalary: number | null = null;
+  commissionRate: number | null = null;
+  iban = '';
+  bic = '';
+  bankName = '';
 
   constructor(private registrationsService: RegistrationsService) {}
 
@@ -280,6 +456,72 @@ export class ManagerRegistrationsPageComponent {
       'commission': 'Commission'
     };
     return labels[contractType] || contractType;
+  }
+
+  openContractModal(user: User): void {
+    this.selectedUser.set(user);
+    this.contractType = '';
+    this.baseSalary = null;
+    this.commissionRate = null;
+    this.iban = '';
+    this.bic = '';
+    this.bankName = '';
+    this.showContractModal.set(true);
+  }
+
+  closeContractModal(): void {
+    this.showContractModal.set(false);
+    this.selectedUser.set(null);
+  }
+
+  async approveWithContract(): Promise<void> {
+    const user = this.selectedUser();
+    if (!user) return;
+
+    // Validation
+    if (!this.contractType) {
+      this.error.set('Veuillez sélectionner un type de contrat');
+      return;
+    }
+
+    if (this.contractType !== 'commission' && (!this.baseSalary || this.baseSalary <= 0)) {
+      this.error.set('Veuillez indiquer un salaire de base valide');
+      return;
+    }
+
+    if (this.contractType === 'commission' && (!this.commissionRate || this.commissionRate <= 0)) {
+      this.error.set('Veuillez indiquer un taux de commission valide');
+      return;
+    }
+
+    this.processing.set(true);
+    this.error.set(null);
+    this.success.set(null);
+
+    try {
+      const contractData: any = {
+        contractType: this.contractType,
+        baseSalary: this.baseSalary || 0,
+        commissionRate: this.commissionRate || 0
+      };
+
+      if (this.iban || this.bic || this.bankName) {
+        contractData.bankDetails = {
+          iban: this.iban || undefined,
+          bic: this.bic || undefined,
+          bankName: this.bankName || undefined
+        };
+      }
+
+      await this.registrationsService.updateStatus(user.id, 'approved', contractData);
+      this.success.set('Mécanicien approuvé avec succès ! Contrat configuré.');
+      this.closeContractModal();
+      await this.loadPendingUsers();
+    } catch (error: any) {
+      this.error.set(error.error?.message || 'Erreur lors de l\'approbation');
+    } finally {
+      this.processing.set(false);
+    }
   }
 
   async approveUser(userId: string): Promise<void> {

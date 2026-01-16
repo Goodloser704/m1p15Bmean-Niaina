@@ -14,16 +14,14 @@ const userSchema = new mongoose.Schema(
     },
     phone: { type: String, trim: true },
     address: { type: String, trim: true },
-    // Informations spécifiques aux mécaniciens
+    // Informations spécifiques aux mécaniciens (configurées par le manager)
     contractType: { 
       type: String, 
-      enum: ["monthly", "daily", "commission"],
-      required: function() { return this.role === "mechanic"; }
+      enum: ["monthly", "daily", "commission"]
     },
     baseSalary: { 
       type: Number, 
-      default: 0,
-      required: function() { return this.role === "mechanic" && this.contractType !== "commission"; }
+      default: 0
     },
     commissionRate: { 
       type: Number, 
