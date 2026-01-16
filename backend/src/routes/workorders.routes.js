@@ -7,10 +7,23 @@ const { requireAuth, requireRole } = require("../middleware/auth");
 const router = express.Router();
 
 router.get("/", requireAuth, async (req, res) => {
-  const filter = {};
-  if (req.user.role === "mechanic") filter.mechanicId = req.user._id;
+  let workOrders;
+  
+  if (req.user.role === "mechanic") {
+    // Pour les mécaniciens, trouver d'abord leurs rendez-vous
+    const appointments = await Appointment.find({ mechanicId: req.user._id });
+    const appointmentIds = appointments.map(a => a._id);
+    workOrders = await WorkOrder.find({ appointmentId: { $in: appointmentIds } }).sort({ createdAt: -1 });
+  } else if (req.user.role === "client") {
+    // Pour les clients, trouver leurs rendez-vous
+    const appointments = await Appointment.find({ clientId: req.user._id });
+    const appointmentIds = appointments.map(a => a._id);
+    workOrders = await WorkOrder.find({ appointmentId: { $in: appointmentIds } }).sort({ createdAt: -1 });
+  } else {
+    // Pour les managers, tout voir
+    workOrders = await WorkOrder.find({}).sort({ createdAt: -1 });
+  }
 
-  const workOrders = await WorkOrder.find(filter).sort({ createdAt: -1 });
   return res.json({ workOrders });
 });
 
