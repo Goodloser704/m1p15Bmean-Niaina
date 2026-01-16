@@ -2,9 +2,8 @@ import { Component, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { WorkOrdersService } from '../../core/services/workorders.service';
 import { AppointmentsService } from '../../core/services/appointments.service';
-import { UsersService } from '../../core/services/users.service';
 import { AuthService } from '../../core/auth/auth.service';
-import type { WorkOrder, Appointment, User } from '../../core/models';
+import type { WorkOrder, Appointment } from '../../core/models';
 
 interface EarningDetail {
   workOrder: WorkOrder;
@@ -325,7 +324,6 @@ interface EarningDetail {
 export class MechanicEarningsPageComponent {
   workOrders = signal<WorkOrder[]>([]);
   appointments = signal<Appointment[]>([]);
-  users = signal<User[]>([]);
   error = signal<string | null>(null);
 
   // Informations du mécanicien connecté
@@ -356,14 +354,13 @@ export class MechanicEarningsPageComponent {
       const appointment = this.appointments().find(a => a._id === wo.appointmentId);
       if (!appointment || appointment.mechanicId !== mechanicId) continue;
 
-      const client = this.users().find(u => u.id === appointment.clientId);
       const totalPaid = wo.total || 0;
       const commission = (totalPaid * this.commissionRate()) / 100;
 
       details.push({
         workOrder: wo,
         appointment,
-        clientName: client?.fullName || 'Client inconnu',
+        clientName: `Client #${appointment.clientId.substring(0, 8)}`,
         repairDate: wo.updatedAt || wo.createdAt || '',
         totalPaid,
         commission: Math.round(commission * 100) / 100,
@@ -402,7 +399,6 @@ export class MechanicEarningsPageComponent {
   constructor(
     private workOrdersService: WorkOrdersService,
     private appointmentsService: AppointmentsService,
-    private usersService: UsersService,
     private authService: AuthService
   ) {}
 
@@ -412,15 +408,15 @@ export class MechanicEarningsPageComponent {
 
   async loadData(): Promise<void> {
     try {
-      const [workOrders, appointments, users] = await Promise.all([
+      const [workOrders, appointments] = await Promise.all([
         this.workOrdersService.list(),
-        this.appointmentsService.list(),
-        this.usersService.list()
+        this.appointmentsService.list()
       ]);
 
       this.workOrders.set(workOrders);
       this.appointments.set(appointments);
-      this.users.set(users);
+      // Note: On n'a pas besoin de charger les users car on affiche juste l'ID client
+      // Dans une version future, on pourrait populer les noms côté backend
     } catch (error: any) {
       this.error.set('Erreur lors du chargement des données');
       console.error('Error loading earnings data:', error);

@@ -32,7 +32,11 @@ const workOrderSchema = new mongoose.Schema(
     clientNote: { type: String, trim: true },
     messages: { type: [workOrderMessageSchema], default: [] }
   },
-  { timestamps: true }
+  { 
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
+  }
 );
 
 workOrderSchema.virtual("total").get(function total() {
