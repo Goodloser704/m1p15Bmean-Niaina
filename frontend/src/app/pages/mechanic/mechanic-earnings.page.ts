@@ -345,13 +345,30 @@ export class MechanicEarningsPageComponent {
   earningDetails = computed(() => {
     const details: EarningDetail[] = [];
     const mechanicId = this.authService.user?.id;
-    if (!mechanicId) return details;
+    
+    console.log('🔍 Debug earnings:');
+    console.log('  - Mechanic ID:', mechanicId);
+    console.log('  - Work Orders:', this.workOrders().length);
+    console.log('  - Appointments:', this.appointments().length);
+    
+    if (!mechanicId) {
+      console.log('  ❌ No mechanic ID');
+      return details;
+    }
 
     // Filtrer les work orders payés assignés à ce mécanicien
     const paidWorkOrders = this.workOrders().filter(wo => wo.status === 'paid');
+    console.log('  - Paid Work Orders:', paidWorkOrders.length);
 
     for (const wo of paidWorkOrders) {
       const appointment = this.appointments().find(a => a._id === wo.appointmentId);
+      console.log(`  - WO ${wo._id}:`, {
+        hasAppointment: !!appointment,
+        appointmentMechanicId: appointment?.mechanicId,
+        matches: appointment?.mechanicId === mechanicId,
+        total: wo.total
+      });
+      
       if (!appointment || appointment.mechanicId !== mechanicId) continue;
 
       const totalPaid = wo.total || 0;
