@@ -38,6 +38,11 @@ import { AuthService } from '../../core/auth/auth.service';
             <p>Diagnostic et réparations</p>
           </a>
 
+          <a class="mechanic-card mechanic-btn mechanic-btn-success" *ngIf="u.role === 'mechanic'" routerLink="/mechanic/earnings">
+            <h3>💰 Mes Revenus</h3>
+            <p>Salaire et commissions</p>
+          </a>
+
           <a class="mechanic-card mechanic-btn" *ngIf="u.role === 'manager'" routerLink="/manager/appointments">
             <h3>📋 Gestion Rendez-vous</h3>
             <p>Planification et assignation</p>

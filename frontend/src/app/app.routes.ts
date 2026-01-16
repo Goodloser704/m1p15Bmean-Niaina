@@ -9,6 +9,7 @@ import { ClientVehiclesPageComponent } from './pages/client/client-vehicles.page
 import { ClientAppointmentsPageComponent } from './pages/client/client-appointments.page';
 import { ClientWorkOrdersPageComponent } from './pages/client/client-workorders.page';
 import { MechanicWorkOrdersPageComponent } from './pages/mechanic/mechanic-workorders.page';
+import { MechanicEarningsPageComponent } from './pages/mechanic/mechanic-earnings.page';
 import { ManagerAppointmentsPageComponent } from './pages/manager/manager-appointments.page';
 import { ManagerWorkOrdersPageComponent } from './pages/manager/manager-workorders.page';
 import { ManagerVehiclesPageComponent } from './pages/manager/manager-vehicles.page';
@@ -34,7 +35,8 @@ export const routes: Routes = [
     canActivate: [authGuard, roleGuard('mechanic')],
     children: [
       { path: '', pathMatch: 'full', redirectTo: 'workorders' },
-      { path: 'workorders', component: MechanicWorkOrdersPageComponent }
+      { path: 'workorders', component: MechanicWorkOrdersPageComponent },
+      { path: 'earnings', component: MechanicEarningsPageComponent }
     ]
   },
   {
