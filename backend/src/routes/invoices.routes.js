@@ -33,33 +33,61 @@ router.get("/", requireAuth, async (req, res) => {
 // Générer une facture à partir d'un work order
 router.post("/generate/:workOrderId", requireAuth, requireRole(["manager", "client"]), async (req, res) => {
   try {
+    console.log("🧾 Generating invoice for work order:", req.params.workOrderId);
     const { workOrderId } = req.params;
     
     const workOrder = await WorkOrder.findById(workOrderId);
     if (!workOrder) {
+      console.log("❌ Work order not found:", workOrderId);
       return res.status(404).json({ message: "Work order not found" });
     }
     
+    console.log("✅ Work order found:", workOrder.status);
+    
     // Vérifier que le work order est payé
     if (workOrder.status !== "paid") {
+      console.log("❌ Work order not paid:", workOrder.status);
       return res.status(400).json({ message: "Work order must be paid to generate invoice" });
     }
     
     // Vérifier qu'une facture n'existe pas déjà
     const existingInvoice = await Invoice.findOne({ workOrderId: workOrder._id });
     if (existingInvoice) {
+      console.log("ℹ️ Invoice already exists:", existingInvoice.invoiceNumber);
       return res.json({ invoice: existingInvoice, message: "Invoice already exists" });
     }
     
+    console.log("🔍 Fetching related data...");
+    
     // Récupérer les informations nécessaires
     const appointment = await Appointment.findById(workOrder.appointmentId);
-    const client = await User.findById(appointment.clientId);
-    const vehicle = await Vehicle.findById(appointment.vehicleId);
-    const settings = await VatSettings.getSettings();
+    if (!appointment) {
+      console.log("❌ Appointment not found:", workOrder.appointmentId);
+      return res.status(404).json({ message: "Appointment not found" });
+    }
     
+    const client = await User.findById(appointment.clientId);
+    if (!client) {
+      console.log("❌ Client not found:", appointment.clientId);
+      return res.status(404).json({ message: "Client not found" });
+    }
+    
+    const vehicle = await Vehicle.findById(appointment.vehicleId);
+    if (!vehicle) {
+      console.log("❌ Vehicle not found:", appointment.vehicleId);
+      return res.status(404).json({ message: "Vehicle not found" });
+    }
+    
+    console.log("🔍 Getting VAT settings...");
+    const settings = await VatSettings.getSettings();
+    console.log("✅ VAT settings loaded:", settings.defaultVatRate);
+    
+    console.log("🧮 Calculating invoice amounts...");
     // Calculer les montants avec TVA
     const invoiceData = await VatService.calculateInvoiceFromWorkOrder(workOrder);
+    console.log("✅ Invoice data calculated:", invoiceData.totalTTC);
     
+    console.log("💾 Creating invoice...");
     // Créer la facture
     const invoice = new Invoice({
       workOrderId: workOrder._id,
@@ -78,11 +106,13 @@ router.post("/generate/:workOrderId", requireAuth, requireRole(["manager", "clie
     });
     
     await invoice.save();
+    console.log("✅ Invoice created:", invoice.invoiceNumber);
     
     return res.status(201).json({ invoice, message: "Facture générée avec succès" });
   } catch (error) {
     console.error("❌ Error generating invoice:", error);
-    return res.status(500).json({ message: "Internal server error" });
+    console.error("Stack trace:", error.stack);
+    return res.status(500).json({ message: "Internal server error: " + error.message });
   }
 });
 
