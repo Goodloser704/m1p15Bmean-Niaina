@@ -8,6 +8,8 @@ const usersRoutes = require("./routes/users.routes");
 const vehiclesRoutes = require("./routes/vehicles.routes");
 const appointmentsRoutes = require("./routes/appointments.routes");
 const workOrdersRoutes = require("./routes/workorders.routes");
+const vatRoutes = require("./routes/vat.routes");
+const invoicesRoutes = require("./routes/invoices.routes");
 
 function createApp() {
   const app = express();
@@ -37,6 +39,8 @@ function createApp() {
   app.use("/api/vehicles", vehiclesRoutes);
   app.use("/api/appointments", appointmentsRoutes);
   app.use("/api/workorders", workOrdersRoutes);
+  app.use("/api/vat", vatRoutes);
+  app.use("/api/invoices", invoicesRoutes);
 
   app.use((req, res) => {
     res.status(404).json({ message: "Not found" });

@@ -33,6 +33,11 @@ import { AuthService } from '../../core/auth/auth.service';
             <p>Suivre vos devis et factures</p>
           </a>
 
+          <a class="mechanic-card mechanic-btn" *ngIf="u.role === 'client'" routerLink="/client/invoices">
+            <h3>📄 Mes Factures</h3>
+            <p>Télécharger vos factures</p>
+          </a>
+
           <a class="mechanic-card mechanic-btn mechanic-btn-warning" *ngIf="u.role === 'mechanic'" routerLink="/mechanic/workorders">
             <h3>🆕 Atelier Mécanicien</h3>
             <p>Diagnostic et réparations</p>
@@ -61,6 +66,16 @@ import { AuthService } from '../../core/auth/auth.service';
           <a class="mechanic-card mechanic-btn mechanic-btn-danger" *ngIf="u.role === 'manager'" routerLink="/manager/registrations">
             <h3>📋 Inscriptions en attente</h3>
             <p>Valider les nouveaux utilisateurs</p>
+          </a>
+
+          <a class="mechanic-card mechanic-btn" *ngIf="u.role === 'manager'" routerLink="/manager/invoices">
+            <h3>📄 Factures</h3>
+            <p>Gestion des factures</p>
+          </a>
+
+          <a class="mechanic-card mechanic-btn mechanic-btn-warning" *ngIf="u.role === 'manager'" routerLink="/manager/vat-settings">
+            <h3>⚙️ Paramètres TVA</h3>
+            <p>Configuration des taux</p>
           </a>
         </div>
       </div>

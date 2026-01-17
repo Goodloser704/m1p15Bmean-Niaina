@@ -76,3 +76,52 @@ export interface WorkOrder {
   updatedAt?: string;
 }
 
+// Nouveaux modèles pour les factures et TVA
+export interface VatRule {
+  keywords: string[];
+  vatRate: number;
+  description: string;
+}
+
+export interface VatSettings {
+  _id?: string;
+  defaultVatRate: number;
+  rules: VatRule[];
+  garageName: string;
+  garageAddress: string;
+  garageSiret: string;
+}
+
+export interface InvoiceItem {
+  label: string;
+  priceHT: number;
+  vatRate: number;
+  vatAmount: number;
+  priceTTC: number;
+}
+
+export type InvoiceStatus = 'draft' | 'sent' | 'paid';
+
+export interface Invoice {
+  _id: string;
+  invoiceNumber: string;
+  workOrderId: string;
+  clientId: string;
+  clientName: string;
+  clientAddress: string;
+  vehicleInfo: string;
+  items: InvoiceItem[];
+  totalHT: number;
+  totalVAT: number;
+  totalTTC: number;
+  garageName: string;
+  garageAddress: string;
+  garageSiret: string;
+  status: InvoiceStatus;
+  invoiceDate: string;
+  dueDate?: string;
+  paidDate?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
