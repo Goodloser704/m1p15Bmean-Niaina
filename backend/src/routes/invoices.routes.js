@@ -88,8 +88,18 @@ router.post("/generate/:workOrderId", requireAuth, requireRole(["manager", "clie
     console.log("✅ Invoice data calculated:", invoiceData.totalTTC);
     
     console.log("💾 Creating invoice...");
+    
+    // Générer le numéro de facture
+    const year = new Date().getFullYear();
+    const count = await Invoice.countDocuments({
+      invoiceNumber: new RegExp(`^${year}-`)
+    });
+    const invoiceNumber = `${year}-${String(count + 1).padStart(4, '0')}`;
+    console.log("📄 Generated invoice number:", invoiceNumber);
+    
     // Créer la facture
     const invoice = new Invoice({
+      invoiceNumber,
       workOrderId: workOrder._id,
       clientId: client._id,
       clientName: client.fullName,

@@ -9,7 +9,7 @@ const invoiceItemSchema = new mongoose.Schema({
 }, { _id: false });
 
 const invoiceSchema = new mongoose.Schema({
-  invoiceNumber: { type: String, required: true, unique: true },
+  invoiceNumber: { type: String, unique: true }, // Retiré required car généré automatiquement
   workOrderId: { type: mongoose.Schema.Types.ObjectId, ref: "WorkOrder", required: true },
   clientId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
   
@@ -49,11 +49,17 @@ const invoiceSchema = new mongoose.Schema({
 // Générer le numéro de facture automatiquement
 invoiceSchema.pre('save', async function(next) {
   if (!this.invoiceNumber) {
-    const year = new Date().getFullYear();
-    const count = await this.constructor.countDocuments({
-      invoiceNumber: new RegExp(`^${year}-`)
-    });
-    this.invoiceNumber = `${year}-${String(count + 1).padStart(4, '0')}`;
+    try {
+      const year = new Date().getFullYear();
+      const count = await this.constructor.countDocuments({
+        invoiceNumber: new RegExp(`^${year}-`)
+      });
+      this.invoiceNumber = `${year}-${String(count + 1).padStart(4, '0')}`;
+      console.log("✅ Generated invoice number:", this.invoiceNumber);
+    } catch (error) {
+      console.error("❌ Error generating invoice number:", error);
+      return next(error);
+    }
   }
   next();
 });
