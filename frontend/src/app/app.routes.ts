@@ -11,6 +11,7 @@ import { ClientWorkOrdersPageComponent } from './pages/client/client-workorders.
 import { ClientInvoicesPageComponent } from './pages/client/client-invoices.page';
 import { MechanicWorkOrdersPageComponent } from './pages/mechanic/mechanic-workorders.page';
 import { MechanicEarningsPageComponent } from './pages/mechanic/mechanic-earnings.page';
+import { MechanicNearbyClientsPageComponent } from './pages/mechanic/mechanic-nearby-clients.page';
 import { ManagerAppointmentsPageComponent } from './pages/manager/manager-appointments.page';
 import { ManagerWorkOrdersPageComponent } from './pages/manager/manager-workorders.page';
 import { ManagerVehiclesPageComponent } from './pages/manager/manager-vehicles.page';
@@ -40,7 +41,8 @@ export const routes: Routes = [
     children: [
       { path: '', pathMatch: 'full', redirectTo: 'workorders' },
       { path: 'workorders', component: MechanicWorkOrdersPageComponent },
-      { path: 'earnings', component: MechanicEarningsPageComponent }
+      { path: 'earnings', component: MechanicEarningsPageComponent },
+      { path: 'nearby-clients', component: MechanicNearbyClientsPageComponent }
     ]
   },
   {

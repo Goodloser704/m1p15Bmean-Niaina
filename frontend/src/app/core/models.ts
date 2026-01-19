@@ -8,6 +8,21 @@ export interface BankDetails {
   bankName?: string;
 }
 
+export interface Coordinates {
+  latitude: number;
+  longitude: number;
+}
+
+export interface Location {
+  address: string;
+  city: string;
+  postalCode: string;
+  country: string;
+  coordinates: Coordinates;
+  geocodedAt?: string;
+  source?: 'manual' | 'api' | 'gps';
+}
+
 export interface User {
   id: string;
   fullName: string;
@@ -16,6 +31,7 @@ export interface User {
   status?: UserStatus;
   phone?: string;
   address?: string;
+  location?: Location;
   createdAt?: string;
   // Informations spécifiques aux mécaniciens
   contractType?: ContractType;
@@ -76,7 +92,7 @@ export interface WorkOrder {
   updatedAt?: string;
 }
 
-// Nouveaux modèles pour les factures et TVA
+// Modèles pour les factures et TVA
 export interface VatRule {
   keywords: string[];
   vatRate: number;
@@ -121,6 +137,56 @@ export interface Invoice {
   invoiceDate: string;
   dueDate?: string;
   paidDate?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Nouveaux modèles pour la géolocalisation
+export interface DistanceResult {
+  distance: number;
+  travelTime: number;
+  unit: string;
+}
+
+export interface NearbyClient {
+  id: string;
+  name: string;
+  address: string;
+  distance: number;
+  travelTime: number;
+  coordinates: Coordinates;
+}
+
+export interface RoutePoint {
+  id?: string;
+  name: string;
+  address: string;
+  latitude: number;
+  longitude: number;
+  distanceFromPrevious?: number;
+  travelTimeFromPrevious?: number;
+}
+
+export interface OptimizedRoute {
+  optimizedRoute: RoutePoint[];
+  totalDistance: number;
+  totalTime: number;
+  savings: {
+    message: string;
+  };
+}
+
+export interface Garage {
+  _id: string;
+  name: string;
+  description?: string;
+  phone: string;
+  email: string;
+  location: Location;
+  siret: string;
+  vatNumber?: string;
+  serviceRadius: number;
+  active: boolean;
   createdAt: string;
   updatedAt: string;
 }

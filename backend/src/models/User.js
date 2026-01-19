@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const { locationSchema } = require("./Location");
 
 const userSchema = new mongoose.Schema(
   {
@@ -14,6 +15,10 @@ const userSchema = new mongoose.Schema(
     },
     phone: { type: String, trim: true },
     address: { type: String, trim: true },
+    
+    // Localisation géographique
+    location: locationSchema,
+    
     // Informations spécifiques aux mécaniciens (configurées par le manager)
     contractType: { 
       type: String, 
