@@ -72,6 +72,34 @@ async function cleanDatabase() {
         }
       },
       {
+        fullName: 'Mechanic 2 Demo',
+        email: 'mechanic2@demo.com',
+        password: 'mechanic123',
+        role: 'mechanic',
+        status: 'approved',
+        phone: '+33 6 34 56 78 90',
+        address: '321 Rue de la République, 75003 Paris',
+        location: {
+          address: '321 Rue de la République',
+          city: 'Paris',
+          postalCode: '75003',
+          country: 'France',
+          coordinates: {
+            latitude: 48.8634,
+            longitude: 2.3639
+          },
+          source: 'manual'
+        },
+        contractType: 'commission',
+        baseSalary: 0,
+        commissionRate: 25,
+        bankDetails: {
+          iban: 'FR76 9876 5432 1098 7654 3210 987',
+          bic: 'CREDFRPP',
+          bankName: 'Crédit Agricole'
+        }
+      },
+      {
         fullName: 'Manager Demo',
         email: 'manager@demo.com',
         password: 'manager123',
@@ -287,16 +315,17 @@ async function cleanDatabase() {
     const finalAppointments = await Appointment.countDocuments();
     const finalWorkOrders = await WorkOrder.countDocuments();
     
-    console.log(`   - Utilisateurs: ${finalUsers} (9 utilisateurs démo avec géolocalisation)`);
+    console.log(`   - Utilisateurs: ${finalUsers} (10 utilisateurs démo avec géolocalisation)`);
     console.log(`   - Véhicules: ${finalVehicles}`);
     console.log(`   - Rendez-vous: ${finalAppointments}`);
     console.log(`   - Ordres de réparation: ${finalWorkOrders}`);
     
     console.log('\n✅ Nettoyage et réinitialisation terminés avec succès!');
     console.log('\n🔑 Identifiants de connexion:');
-    console.log('   Client:     client@demo.com     / client123');
-    console.log('   Mécanicien: mechanic@demo.com   / mechanic123');
-    console.log('   Manager:    manager@demo.com    / manager123');
+    console.log('   Client:       client@demo.com     / client123');
+    console.log('   Mécanicien 1: mechanic@demo.com   / mechanic123');
+    console.log('   Mécanicien 2: mechanic2@demo.com  / mechanic123');
+    console.log('   Manager:      manager@demo.com    / manager123');
     console.log('\n🗺️  Clients avec géolocalisation:');
     console.log('   - Client Demo (Rue de Rivoli)');
     console.log('   - Marie Dubois (Rue de la Paix)');
