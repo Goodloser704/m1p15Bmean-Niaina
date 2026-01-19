@@ -34,6 +34,9 @@ import type { Coordinates, NearbyClient } from '../../core/models';
                 <button (click)="useCurrentLocation()" [disabled]="loading()" class="location-btn">
                   📍 Ma position
                 </button>
+                <button (click)="useParisLocation()" [disabled]="loading()" class="paris-btn">
+                  🗼 Position Paris (test)
+                </button>
                 <button (click)="showAddressInput = !showAddressInput" class="address-btn">
                   📍 Autre adresse
                 </button>
@@ -217,7 +220,8 @@ import type { Coordinates, NearbyClient } from '../../core/models';
     }
 
     .location-btn,
-    .address-btn {
+    .address-btn,
+    .paris-btn {
       background: linear-gradient(135deg, #e67e22, #f39c12);
       border: 2px solid #e67e22;
       color: white;
@@ -226,6 +230,11 @@ import type { Coordinates, NearbyClient } from '../../core/models';
       cursor: pointer;
       font-weight: 600;
       font-size: 12px;
+    }
+
+    .paris-btn {
+      background: linear-gradient(135deg, #9b59b6, #8e44ad);
+      border-color: #9b59b6;
     }
 
     .position-info {
@@ -472,7 +481,8 @@ export class MechanicNearbyClientsPageComponent {
   constructor(private mapsService: MapsService) {}
 
   async ngOnInit(): Promise<void> {
-    await this.useCurrentLocation();
+    // Utiliser Paris par défaut pour les tests au lieu de la géolocalisation automatique
+    await this.useParisLocation();
   }
 
   mapCenter(): Coordinates {
@@ -490,6 +500,23 @@ export class MechanicNearbyClientsPageComponent {
       this.success.set('Position détectée avec succès !');
     } catch (error: any) {
       this.error.set(error.message || 'Erreur de géolocalisation');
+    } finally {
+      this.loading.set(false);
+    }
+  }
+
+  async useParisLocation(): Promise<void> {
+    this.loading.set(true);
+    this.error.set(null);
+
+    try {
+      // Coordonnées du centre de Paris (Place de la Concorde)
+      const parisPosition = { latitude: 48.8566, longitude: 2.3522 };
+      this.currentPosition.set(parisPosition);
+      await this.searchNearbyClients();
+      this.success.set('Position Paris définie pour les tests !');
+    } catch (error: any) {
+      this.error.set(error.message || 'Erreur lors de la définition de la position Paris');
     } finally {
       this.loading.set(false);
     }
