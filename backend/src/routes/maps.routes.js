@@ -1,6 +1,7 @@
 const express = require("express");
 const Garage = require("../models/Garage");
 const User = require("../models/User");
+const Appointment = require("../models/Appointment");
 const geocodingService = require("../services/geocodingService");
 const { requireAuth, requireRole } = require("../middleware/auth");
 
@@ -74,7 +75,7 @@ router.post("/distance", requireAuth, async (req, res) => {
 // Trouver les clients les plus proches (pour les mécaniciens à domicile)
 router.get("/nearby-clients", requireAuth, requireRole(["manager", "mechanic"]), async (req, res) => {
   try {
-    const { latitude, longitude, radius = 25 } = req.query;
+    const { latitude, longitude, radius = 25, assignedOnly = 'false' } = req.query;
     
     if (!latitude || !longitude) {
       return res.status(400).json({ message: "Position requise" });
@@ -84,11 +85,28 @@ router.get("/nearby-clients", requireAuth, requireRole(["manager", "mechanic"]),
     const lon = parseFloat(longitude);
     const maxRadius = parseFloat(radius);
 
-    // Récupérer tous les clients avec adresse
-    const clients = await User.find({ 
+    let clientFilter = { 
       role: 'client',
       address: { $exists: true, $ne: '' }
-    });
+    };
+
+    // Si c'est un mécanicien et qu'il veut seulement ses clients assignés
+    if (req.user.role === 'mechanic' && assignedOnly === 'true') {
+      // Trouver les rendez-vous assignés à ce mécanicien
+      const assignedAppointments = await Appointment.find({ 
+        mechanicId: req.user._id 
+      }).distinct('clientId');
+      
+      if (assignedAppointments.length > 0) {
+        clientFilter._id = { $in: assignedAppointments };
+      } else {
+        // Aucun client assigné
+        return res.json({ clients: [] });
+      }
+    }
+
+    // Récupérer les clients selon le filtre
+    const clients = await User.find(clientFilter);
 
     const nearbyClients = [];
 
@@ -101,13 +119,24 @@ router.get("/nearby-clients", requireAuth, requireRole(["manager", "mechanic"]),
         );
 
         if (distance <= maxRadius) {
+          // Vérifier si ce client a des rendez-vous avec ce mécanicien
+          let isAssigned = false;
+          if (req.user.role === 'mechanic') {
+            const hasAppointment = await Appointment.findOne({
+              clientId: client._id,
+              mechanicId: req.user._id
+            });
+            isAssigned = !!hasAppointment;
+          }
+
           nearbyClients.push({
             id: client._id,
             name: client.fullName,
             address: client.address,
             distance: Math.round(distance * 100) / 100,
             travelTime: geocodingService.estimateTravelTime(distance),
-            coordinates: client.location.coordinates
+            coordinates: client.location.coordinates,
+            isAssigned: isAssigned || req.user.role === 'manager' // Manager voit tous les clients
           });
         }
       }

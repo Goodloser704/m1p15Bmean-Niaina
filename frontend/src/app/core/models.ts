@@ -155,6 +155,7 @@ export interface NearbyClient {
   distance: number;
   travelTime: number;
   coordinates: Coordinates;
+  isAssigned?: boolean;
 }
 
 export interface RoutePoint {

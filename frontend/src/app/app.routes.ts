@@ -18,6 +18,7 @@ import { ManagerVehiclesPageComponent } from './pages/manager/manager-vehicles.p
 import { ManagerRegistrationsPageComponent } from './pages/manager/manager-registrations.page';
 import { ManagerInvoicesPageComponent } from './pages/manager/manager-invoices.page';
 import { ManagerVatSettingsPageComponent } from './pages/manager/manager-vat-settings.page';
+import { ManagerNearbyClientsPageComponent } from './pages/manager/manager-nearby-clients.page';
 
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
@@ -55,7 +56,8 @@ export const routes: Routes = [
       { path: 'vehicles', component: ManagerVehiclesPageComponent },
       { path: 'registrations', component: ManagerRegistrationsPageComponent },
       { path: 'invoices', component: ManagerInvoicesPageComponent },
-      { path: 'vat-settings', component: ManagerVatSettingsPageComponent }
+      { path: 'vat-settings', component: ManagerVatSettingsPageComponent },
+      { path: 'nearby-clients', component: ManagerNearbyClientsPageComponent }
     ]
   },
   { path: '**', redirectTo: 'dashboard' }

@@ -7,12 +7,12 @@ import type { Coordinates, NearbyClient } from '../../core/models';
 
 @Component({
   standalone: true,
-  selector: 'app-mechanic-nearby-clients-page',
+  selector: 'app-manager-nearby-clients-page',
   imports: [CommonModule, FormsModule, InteractiveMapComponent],
   template: `
-    <div class="page-mechanic-theme">
+    <div class="page-manager-theme">
       <div class="wrap">
-        <h2>🗺️ Clients à Proximité</h2>
+        <h2>🗺️ Clients à Proximité - Vue Manager</h2>
 
         <!-- Contrôles -->
         <div class="card">
@@ -45,20 +45,6 @@ import type { Coordinates, NearbyClient } from '../../core/models';
               <p class="position-info">
                 {{ currentPosition()!.latitude.toFixed(4) }}, {{ currentPosition()!.longitude.toFixed(4) }}
               </p>
-            </div>
-
-            <div class="control-group">
-              <label>Filtres</label>
-              <div class="filter-controls">
-                <label class="checkbox-label">
-                  <input 
-                    type="checkbox" 
-                    [(ngModel)]="showAssignedOnly"
-                    (change)="onFilterChange()">
-                  <span class="checkmark"></span>
-                  Seulement mes clients assignés
-                </label>
-              </div>
             </div>
           </div>
 
@@ -116,8 +102,8 @@ import type { Coordinates, NearbyClient } from '../../core/models';
           <div class="stat-card">
             <div class="stat-icon">🎯</div>
             <div class="stat-content">
-              <div class="stat-value">{{ searchRadius }}km</div>
-              <div class="stat-label">Rayon recherche</div>
+              <div class="stat-value">{{ assignedClientsCount() }}</div>
+              <div class="stat-label">Clients assignés</div>
             </div>
           </div>
         </div>
@@ -156,8 +142,8 @@ import type { Coordinates, NearbyClient } from '../../core/models';
                 <button (click)="navigateToClient(client)" class="nav-btn">
                   🧭 Navigation
                 </button>
-                <button (click)="contactClient(client)" class="contact-btn">
-                  📞 Contacter
+                <button (click)="assignMechanic(client)" class="assign-btn">
+                  👨‍🔧 Assigner
                 </button>
                 <button (click)="viewClientDetails(client)" class="details-btn">
                   👁️ Détails
@@ -205,9 +191,9 @@ import type { Coordinates, NearbyClient } from '../../core/models';
 
     .control-group select {
       padding: 10px;
-      border: 2px solid #34495e;
+      border: 2px solid #2c3e50;
       border-radius: 8px;
-      background: rgba(44, 62, 80, 0.9);
+      background: rgba(52, 73, 94, 0.9);
       color: #ffffff;
     }
 
@@ -218,8 +204,8 @@ import type { Coordinates, NearbyClient } from '../../core/models';
 
     .location-btn,
     .address-btn {
-      background: linear-gradient(135deg, #e67e22, #f39c12);
-      border: 2px solid #e67e22;
+      background: linear-gradient(135deg, #3498db, #2980b9);
+      border: 2px solid #3498db;
       color: white;
       padding: 8px 12px;
       border-radius: 8px;
@@ -238,7 +224,7 @@ import type { Coordinates, NearbyClient } from '../../core/models';
     .address-input {
       margin-top: 16px;
       padding-top: 16px;
-      border-top: 2px solid #34495e;
+      border-top: 2px solid #2c3e50;
     }
 
     .input-grid {
@@ -252,9 +238,9 @@ import type { Coordinates, NearbyClient } from '../../core/models';
     .city-field,
     .postal-field {
       padding: 10px;
-      border: 2px solid #34495e;
+      border: 2px solid #2c3e50;
       border-radius: 8px;
-      background: rgba(44, 62, 80, 0.9);
+      background: rgba(52, 73, 94, 0.9);
       color: #ffffff;
     }
 
@@ -339,7 +325,7 @@ import type { Coordinates, NearbyClient } from '../../core/models';
 
     .distance,
     .travel-time {
-      color: #e67e22;
+      color: #3498db;
       font-weight: 600;
       font-size: 14px;
     }
@@ -361,25 +347,6 @@ import type { Coordinates, NearbyClient } from '../../core/models';
       color: #95a5a6;
     }
 
-    .filter-controls {
-      margin-top: 8px;
-    }
-
-    .checkbox-label {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      color: #f8f9fa;
-      cursor: pointer;
-      font-size: 14px;
-    }
-
-    .checkbox-label input[type="checkbox"] {
-      width: 18px;
-      height: 18px;
-      accent-color: #e67e22;
-    }
-
     .client-actions {
       display: flex;
       gap: 8px;
@@ -387,6 +354,17 @@ import type { Coordinates, NearbyClient } from '../../core/models';
     }
 
     .nav-btn {
+      background: linear-gradient(135deg, #3498db, #2980b9);
+      border: 2px solid #3498db;
+      color: white;
+      padding: 8px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 12px;
+    }
+
+    .assign-btn {
       background: linear-gradient(135deg, #e67e22, #f39c12);
       border: 2px solid #e67e22;
       color: white;
@@ -397,20 +375,9 @@ import type { Coordinates, NearbyClient } from '../../core/models';
       font-size: 12px;
     }
 
-    .contact-btn {
+    .details-btn {
       background: linear-gradient(135deg, #27ae60, #2ecc71);
       border: 2px solid #27ae60;
-      color: white;
-      padding: 8px 12px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: 600;
-      font-size: 12px;
-    }
-
-    .details-btn {
-      background: linear-gradient(135deg, #3498db, #2980b9);
-      border: 2px solid #3498db;
       color: white;
       padding: 8px 12px;
       border-radius: 8px;
@@ -453,7 +420,7 @@ import type { Coordinates, NearbyClient } from '../../core/models';
     }
   `]
 })
-export class MechanicNearbyClientsPageComponent {
+export class ManagerNearbyClientsPageComponent {
   nearbyClients = signal<NearbyClient[]>([]);
   currentPosition = signal<Coordinates | null>(null);
   loading = signal(false);
@@ -462,7 +429,6 @@ export class MechanicNearbyClientsPageComponent {
 
   searchRadius = 25;
   showAddressInput = false;
-  showAssignedOnly = false;
   searchAddress = {
     address: '',
     city: '',
@@ -528,12 +494,6 @@ export class MechanicNearbyClientsPageComponent {
     }
   }
 
-  async onFilterChange(): Promise<void> {
-    if (this.currentPosition()) {
-      await this.searchNearbyClients();
-    }
-  }
-
   async searchNearbyClients(): Promise<void> {
     const position = this.currentPosition();
     if (!position) return;
@@ -546,7 +506,7 @@ export class MechanicNearbyClientsPageComponent {
         position.latitude,
         position.longitude,
         this.searchRadius,
-        this.showAssignedOnly
+        false // Manager voit tous les clients
       );
       
       this.nearbyClients.set(clients);
@@ -579,6 +539,10 @@ export class MechanicNearbyClientsPageComponent {
     return this.nearbyClients().reduce((sum, client) => sum + client.travelTime, 0);
   }
 
+  assignedClientsCount(): number {
+    return this.nearbyClients().filter(client => client.isAssigned).length;
+  }
+
   onMarkerClick(client: NearbyClient): void {
     console.log('Client sélectionné:', client);
   }
@@ -588,9 +552,9 @@ export class MechanicNearbyClientsPageComponent {
     window.open(url, '_blank');
   }
 
-  contactClient(client: NearbyClient): void {
-    // TODO: Implémenter contact client (téléphone, email)
-    this.success.set(`Contact client ${client.name} à implémenter`);
+  assignMechanic(client: NearbyClient): void {
+    // TODO: Implémenter assignation mécanicien
+    this.success.set(`Assignation mécanicien pour ${client.name} à implémenter`);
   }
 
   viewClientDetails(client: NearbyClient): void {

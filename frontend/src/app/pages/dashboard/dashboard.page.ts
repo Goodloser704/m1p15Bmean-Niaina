@@ -82,6 +82,11 @@ import { AuthService } from '../../core/auth/auth.service';
             <h3>⚙️ Paramètres TVA</h3>
             <p>Configuration des taux</p>
           </a>
+
+          <a class="mechanic-card mechanic-btn" *ngIf="u.role === 'manager'" routerLink="/manager/nearby-clients">
+            <h3>🗺️ Clients Proches</h3>
+            <p>Géolocalisation et assignation</p>
+          </a>
         </div>
       </div>
     </div>

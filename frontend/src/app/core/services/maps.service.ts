@@ -52,13 +52,14 @@ export class MapsService {
   /**
    * Trouver les clients proches (pour mécaniciens)
    */
-  async findNearbyClients(latitude: number, longitude: number, radius = 25): Promise<NearbyClient[]> {
+  async findNearbyClients(latitude: number, longitude: number, radius = 25, assignedOnly = false): Promise<NearbyClient[]> {
     const res = await firstValueFrom(
       this.http.get<{ clients: NearbyClient[] }>(`${API_BASE_URL}/api/maps/nearby-clients`, {
         params: {
           latitude: latitude.toString(),
           longitude: longitude.toString(),
-          radius: radius.toString()
+          radius: radius.toString(),
+          assignedOnly: assignedOnly.toString()
         }
       })
     );
