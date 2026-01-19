@@ -3,6 +3,7 @@ const bcrypt = require("bcryptjs");
 const User = require("../models/User");
 const { signAccessToken } = require("../utils/jwt");
 const { requireAuth } = require("../middleware/auth");
+const geocodingService = require("../services/geocodingService");
 
 const router = express.Router();
 
@@ -30,7 +31,18 @@ router.post("/login", async (req, res) => {
 
 router.post("/register", async (req, res) => {
   try {
-    const { fullName, email, password, role, phone, address } = req.body || {};
+    const { 
+      fullName, 
+      email, 
+      password, 
+      role, 
+      phone, 
+      address, 
+      city, 
+      postalCode, 
+      coordinates, 
+      locationSource 
+    } = req.body || {};
     
     // Validation
     if (!fullName || !email || !password || !role) {
@@ -56,8 +68,52 @@ router.post("/register", async (req, res) => {
       status = "pending"; // Nécessite validation pour mécanicien/manager
     }
 
+    // Préparer les données de localisation
+    let locationData = null;
+    
+    if (address && city) {
+      locationData = {
+        address: String(address).trim(),
+        city: String(city).trim(),
+        postalCode: postalCode ? String(postalCode).trim() : '',
+        country: 'France'
+      };
+
+      // Si des coordonnées sont fournies, les utiliser
+      if (coordinates && coordinates.latitude && coordinates.longitude) {
+        locationData.coordinates = {
+          latitude: parseFloat(coordinates.latitude),
+          longitude: parseFloat(coordinates.longitude)
+        };
+        locationData.source = locationSource || 'manual';
+        locationData.geocodedAt = new Date().toISOString();
+        
+        console.log(`📍 Coordonnées fournies pour ${fullName}: ${coordinates.latitude}, ${coordinates.longitude} (${locationSource})`);
+      } else {
+        // Sinon, essayer de géocoder automatiquement l'adresse
+        try {
+          console.log(`🗺️  Géocodage automatique pour ${fullName}: ${address}, ${city}`);
+          const geocodedCoords = await geocodingService.geocodeAddress(
+            address, 
+            city, 
+            postalCode, 
+            'France'
+          );
+          
+          locationData.coordinates = geocodedCoords;
+          locationData.source = 'api';
+          locationData.geocodedAt = new Date().toISOString();
+          
+          console.log(`✅ Géocodage réussi: ${geocodedCoords.latitude}, ${geocodedCoords.longitude}`);
+        } catch (geocodeError) {
+          console.log(`⚠️  Géocodage échoué pour ${fullName}: ${geocodeError.message}`);
+          // Continuer sans coordonnées - pas bloquant
+        }
+      }
+    }
+
     // Créer l'utilisateur
-    const user = new User({
+    const userData = {
       fullName: String(fullName).trim(),
       email: String(email).toLowerCase().trim(),
       passwordHash,
@@ -65,9 +121,17 @@ router.post("/register", async (req, res) => {
       status,
       phone: phone ? String(phone).trim() : undefined,
       address: address ? String(address).trim() : undefined
-    });
+    };
 
+    // Ajouter les données de localisation si disponibles
+    if (locationData) {
+      userData.location = locationData;
+    }
+
+    const user = new User(userData);
     await user.save();
+
+    console.log(`👤 Nouvel utilisateur créé: ${user.fullName} (${user.role}) - ${user.location ? 'avec géolocalisation' : 'sans géolocalisation'}`);
 
     // Si c'est un client, connexion automatique
     if (role === "client") {

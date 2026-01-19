@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../core/auth/auth.service';
+import { MapsService } from '../../core/services/maps.service';
 
 @Component({
   standalone: true,
@@ -82,12 +83,64 @@ import { AuthService } from '../../core/auth/auth.service';
 
               <div class="form-group">
                 <label>Adresse</label>
-                <textarea 
+                <input 
+                  type="text" 
                   [(ngModel)]="address" 
                   name="address"
-                  placeholder="123 Rue de la République, 75001 Paris"
-                  rows="2"
-                ></textarea>
+                  placeholder="123 Rue de la République"
+                />
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Ville</label>
+                  <input 
+                    type="text" 
+                    [(ngModel)]="city" 
+                    name="city"
+                    placeholder="Paris"
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label>Code postal</label>
+                  <input 
+                    type="text" 
+                    [(ngModel)]="postalCode" 
+                    name="postalCode"
+                    placeholder="75001"
+                  />
+                </div>
+              </div>
+
+              <div class="geolocation-section" *ngIf="address && city">
+                <div class="geolocation-options">
+                  <button 
+                    type="button" 
+                    (click)="detectLocation()" 
+                    [disabled]="detectingLocation()"
+                    class="location-btn"
+                  >
+                    📍 {{ detectingLocation() ? 'Détection...' : 'Détecter ma position' }}
+                  </button>
+                  
+                  <button 
+                    type="button" 
+                    (click)="geocodeAddress()" 
+                    [disabled]="geocodingAddress()"
+                    class="geocode-btn"
+                  >
+                    🗺️ {{ geocodingAddress() ? 'Géocodage...' : 'Géocoder l\'adresse' }}
+                  </button>
+                </div>
+
+                <div class="location-info" *ngIf="coordinates()">
+                  <span class="location-icon">📍</span>
+                  <span class="location-text">
+                    Position: {{ coordinates()!.latitude.toFixed(4) }}, {{ coordinates()!.longitude.toFixed(4) }}
+                  </span>
+                  <span class="location-source">({{ locationSource() }})</span>
+                </div>
               </div>
 
               <div class="info-box" *ngIf="role === 'mechanic' || role === 'manager'">
@@ -249,6 +302,77 @@ import { AuthService } from '../../core/auth/auth.service';
       border-radius: 8px;
       text-align: center;
     }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 15px;
+    }
+
+    .geolocation-section {
+      margin-bottom: 20px;
+      padding: 15px;
+      background: rgba(52, 73, 94, 0.3);
+      border-radius: 8px;
+      border: 1px solid #34495e;
+    }
+
+    .geolocation-options {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .location-btn, .geocode-btn {
+      flex: 1;
+      padding: 8px 12px;
+      border: 2px solid #3498db;
+      border-radius: 6px;
+      background: linear-gradient(135deg, #3498db, #2980b9);
+      color: white;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .location-btn:hover:not(:disabled), .geocode-btn:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 3px 10px rgba(52, 152, 219, 0.3);
+    }
+
+    .location-btn:disabled, .geocode-btn:disabled {
+      background: #7f8c8d;
+      border-color: #95a5a6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .location-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px;
+      background: rgba(39, 174, 96, 0.1);
+      border: 1px solid #27ae60;
+      border-radius: 6px;
+      color: #27ae60;
+      font-size: 12px;
+    }
+
+    .location-icon {
+      font-size: 14px;
+    }
+
+    .location-text {
+      font-family: monospace;
+      font-weight: 600;
+    }
+
+    .location-source {
+      opacity: 0.8;
+      font-style: italic;
+    }
   `]
 })
 export class RegisterPageComponent {
@@ -259,15 +383,63 @@ export class RegisterPageComponent {
   role = 'client';
   phone = '';
   address = '';
+  city = '';
+  postalCode = '';
   
   processing = signal(false);
+  detectingLocation = signal(false);
+  geocodingAddress = signal(false);
+  coordinates = signal<{latitude: number, longitude: number} | null>(null);
+  locationSource = signal<string>('');
   error = signal<string | null>(null);
   success = signal<string | null>(null);
 
   constructor(
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private mapsService: MapsService
   ) {}
+
+  async detectLocation(): Promise<void> {
+    this.detectingLocation.set(true);
+    this.error.set(null);
+
+    try {
+      const position = await this.mapsService.getCurrentPosition();
+      this.coordinates.set(position);
+      this.locationSource.set('GPS');
+      this.success.set('Position GPS détectée avec succès !');
+    } catch (error: any) {
+      this.error.set(error.message || 'Erreur de géolocalisation GPS');
+    } finally {
+      this.detectingLocation.set(false);
+    }
+  }
+
+  async geocodeAddress(): Promise<void> {
+    if (!this.address || !this.city) {
+      this.error.set('Adresse et ville requises pour le géocodage');
+      return;
+    }
+
+    this.geocodingAddress.set(true);
+    this.error.set(null);
+
+    try {
+      const coords = await this.mapsService.geocodeAddress(
+        this.address,
+        this.city,
+        this.postalCode
+      );
+      this.coordinates.set(coords);
+      this.locationSource.set('Adresse');
+      this.success.set('Adresse géocodée avec succès !');
+    } catch (error: any) {
+      this.error.set(error.message || 'Erreur de géocodage de l\'adresse');
+    } finally {
+      this.geocodingAddress.set(false);
+    }
+  }
 
   async onSubmit(event: Event): Promise<void> {
     event.preventDefault();
@@ -300,7 +472,11 @@ export class RegisterPageComponent {
         password: this.password,
         role: this.role,
         phone: this.phone || undefined,
-        address: this.address || undefined
+        address: this.address || undefined,
+        city: this.city || undefined,
+        postalCode: this.postalCode || undefined,
+        coordinates: this.coordinates() || undefined,
+        locationSource: this.locationSource() || undefined
       };
 
       const result = await this.authService.register(registerData);
