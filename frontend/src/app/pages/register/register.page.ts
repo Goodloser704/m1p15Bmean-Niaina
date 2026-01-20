@@ -303,6 +303,36 @@ import { MapsService } from '../../core/services/maps.service';
       text-align: center;
     }
 
+    /* Desktop/Mobile Visibility */
+    .desktop-only {
+      display: flex;
+    }
+
+    @media (max-width: 767px) {
+      .desktop-only {
+        display: none;
+      }
+
+      .layout {
+        grid-template-rows: auto 1fr auto;
+      }
+
+      .main {
+        padding-top: 0;
+      }
+
+      .footer {
+        padding: 8px 12px;
+        font-size: 12px;
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      .footer span:nth-child(2) {
+        display: none;
+      }
+    }
+
     .form-row {
       display: grid;
       grid-template-columns: 2fr 1fr;

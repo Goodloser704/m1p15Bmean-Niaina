@@ -1,0 +1,499 @@
+/* ===== MOBILE RESPONSIVE STYLES ===== */
+
+/* Base Mobile Styles */
+@media (max-width: 767px) {
+  
+  /* Global Mobile Adjustments */
+  body {
+    font-size: 14px;
+    line-height: 1.4;
+  }
+
+  /* Hide desktop navigation */
+  .header .nav {
+    display: none;
+  }
+
+  /* Mobile Page Themes */
+  .page-mechanic-theme,
+  .page-manager-theme,
+  .page-client-theme {
+    padding: 0;
+    min-height: calc(100vh - 120px);
+  }
+
+  .wrap {
+    max-width: 100%;
+    margin: 0;
+    padding: 12px;
+  }
+
+  /* Mobile Cards */
+  .card {
+    margin: 8px 0;
+    padding: 16px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Mobile Grid Layouts */
+  .mechanic-grid,
+  .stats-grid,
+  .controls-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  /* Mobile Form Styles */
+  .form-group {
+    margin-bottom: 16px;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  input, select, textarea, button {
+    font-size: 16px; /* Prevent zoom on iOS */
+    padding: 12px;
+    border-radius: 8px;
+  }
+
+  /* Mobile Tables */
+  table {
+    font-size: 12px;
+  }
+
+  th, td {
+    padding: 8px 4px;
+    word-break: break-word;
+  }
+
+  /* Hide less important columns on mobile */
+  .mobile-hide {
+    display: none;
+  }
+
+  /* Mobile Buttons */
+  button {
+    min-height: 44px; /* Touch target size */
+    font-size: 14px;
+  }
+
+  .btn-group {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .btn-group button {
+    width: 100%;
+  }
+
+  /* Mobile Navigation Controls */
+  .position-controls {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .position-controls button {
+    width: 100%;
+  }
+
+  /* Mobile Client Actions */
+  .client-actions {
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .client-actions button {
+    width: 100%;
+    font-size: 12px;
+    padding: 8px;
+  }
+
+  /* Mobile Client Items */
+  .client-item {
+    flex-direction: column;
+    gap: 12px;
+    align-items: stretch;
+  }
+
+  .client-info {
+    width: 100%;
+  }
+
+  .client-stats {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  /* Mobile Stats Cards */
+  .stat-card {
+    padding: 16px;
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .stat-icon {
+    font-size: 24px;
+  }
+
+  .stat-value {
+    font-size: 20px;
+  }
+
+  /* Mobile Geolocation Section */
+  .geolocation-section {
+    padding: 12px;
+  }
+
+  .geolocation-options {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .location-btn,
+  .geocode-btn,
+  .paris-btn {
+    width: 100%;
+    padding: 12px;
+    font-size: 14px;
+  }
+
+  /* Mobile Address Input */
+  .input-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  /* Mobile Map */
+  .interactive-map {
+    height: 300px !important;
+    border-radius: 8px;
+  }
+
+  /* Mobile Earnings Page */
+  .earnings-summary {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .earnings-table {
+    overflow-x: auto;
+  }
+
+  .earnings-table table {
+    min-width: 600px;
+  }
+
+  /* Mobile Registration */
+  .register-container {
+    padding: 12px;
+    min-height: auto;
+  }
+
+  .register-card {
+    padding: 24px;
+    max-width: 100%;
+  }
+
+  /* Mobile Login */
+  .login-container {
+    padding: 12px;
+    min-height: auto;
+  }
+
+  .login-card {
+    padding: 24px;
+    max-width: 100%;
+  }
+
+  /* Mobile Dashboard */
+  .mechanic-banner {
+    font-size: 14px;
+    padding: 12px;
+    text-align: center;
+  }
+
+  .mechanic-title {
+    font-size: 1.5em;
+    margin: 16px 0;
+  }
+
+  .mechanic-card {
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+
+  .mechanic-card h3 {
+    font-size: 1.1em;
+    margin-bottom: 8px;
+  }
+
+  .mechanic-card p {
+    font-size: 0.9em;
+  }
+
+  /* Mobile Invoices */
+  .invoice-actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .invoice-actions button {
+    width: 100%;
+  }
+
+  /* Mobile Work Orders */
+  .workorder-item {
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+
+  .workorder-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .workorder-actions {
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .workorder-actions button {
+    width: 100%;
+  }
+
+  /* Mobile Messages */
+  .messages-section {
+    max-height: 200px;
+    overflow-y: auto;
+  }
+
+  .message-item {
+    padding: 8px;
+    margin-bottom: 8px;
+    font-size: 12px;
+  }
+
+  /* Mobile Appointments */
+  .appointment-item {
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+
+  .appointment-details {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  /* Mobile Vehicle Management */
+  .vehicle-item {
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+
+  .vehicle-info {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .vehicle-actions {
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .vehicle-actions button {
+    width: 100%;
+  }
+
+  /* Mobile Error/Success Messages */
+  .error, .success {
+    font-size: 14px;
+    padding: 12px;
+    margin: 12px 0;
+    border-radius: 8px;
+  }
+
+  /* Mobile Loading States */
+  .loading {
+    padding: 24px;
+    text-align: center;
+  }
+
+  .loading-spinner {
+    font-size: 24px;
+  }
+
+  /* Mobile Footer */
+  .footer {
+    padding: 12px;
+    font-size: 12px;
+    flex-direction: column;
+    gap: 4px;
+    text-align: center;
+  }
+}
+
+/* Tablet Styles */
+@media (min-width: 768px) and (max-width: 1023px) {
+  
+  .wrap {
+    max-width: 100%;
+    padding: 16px;
+  }
+
+  .mechanic-grid,
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+
+  .controls-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+
+  .client-item {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .client-actions {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .earnings-summary {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Large Mobile/Small Tablet */
+@media (min-width: 480px) and (max-width: 767px) {
+  
+  .earnings-summary {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .geolocation-options {
+    flex-direction: row;
+    gap: 8px;
+  }
+
+  .geolocation-options button {
+    flex: 1;
+  }
+
+  .input-grid {
+    grid-template-columns: 2fr 1fr;
+    gap: 12px;
+  }
+
+  .btn-group {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .btn-group button {
+    flex: 1;
+    min-width: 120px;
+  }
+}
+
+/* Touch-friendly improvements */
+@media (hover: none) and (pointer: coarse) {
+  
+  /* Larger touch targets */
+  button, .nav-link, .mechanic-card {
+    min-height: 44px;
+  }
+
+  /* Remove hover effects on touch devices */
+  button:hover,
+  .nav-link:hover,
+  .mechanic-card:hover {
+    transform: none;
+  }
+
+  /* Add active states for touch feedback */
+  button:active {
+    transform: scale(0.98);
+    opacity: 0.8;
+  }
+
+  .nav-link:active,
+  .mechanic-card:active {
+    opacity: 0.8;
+  }
+}
+
+/* Landscape phone adjustments */
+@media (max-width: 767px) and (orientation: landscape) {
+  
+  .interactive-map {
+    height: 250px !important;
+  }
+
+  .nav-menu {
+    width: 250px;
+  }
+
+  .register-container,
+  .login-container {
+    padding: 8px;
+  }
+
+  .register-card,
+  .login-card {
+    padding: 16px;
+  }
+}
+
+/* High DPI displays */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  
+  /* Sharper borders and shadows */
+  .card, .nav-menu, .mobile-nav {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  }
+}
+
+/* Accessibility improvements for mobile */
+@media (max-width: 767px) {
+  
+  /* Focus indicators */
+  button:focus,
+  input:focus,
+  select:focus,
+  textarea:focus {
+    outline: 2px solid #e67e22;
+    outline-offset: 2px;
+  }
+
+  /* Reduced motion for users who prefer it */
+  @media (prefers-reduced-motion: reduce) {
+    .nav-menu,
+    .nav-overlay,
+    .hamburger-line {
+      transition: none;
+    }
+  }
+
+  /* High contrast mode support */
+  @media (prefers-contrast: high) {
+    .card {
+      border: 2px solid #e67e22;
+    }
+    
+    button {
+      border: 2px solid currentColor;
+    }
+  }
+}
