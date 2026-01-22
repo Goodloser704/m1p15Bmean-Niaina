@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { WorkOrdersService } from '../../core/services/workorders.service';
 import { AppointmentsService } from '../../core/services/appointments.service';
 import { ToolsService } from '../../core/services/tools.service';
-import type { WorkOrder, Appointment, WorkOrderMessage } from '../../core/models';
+import type { WorkOrder, Appointment, Tool } from '../../core/models';
 
 @Component({
   standalone: true,
@@ -554,6 +554,7 @@ import type { WorkOrder, Appointment, WorkOrderMessage } from '../../core/models
 export class ClientWorkOrdersPageComponent {
   workOrders = signal<WorkOrder[]>([]);
   appointments = signal<Appointment[]>([]);
+  tools = signal<Tool[]>([]);
   processing = signal(false);
   error = signal<string | null>(null);
   success = signal<string | null>(null);
@@ -575,13 +576,15 @@ export class ClientWorkOrdersPageComponent {
 
   async refresh(): Promise<void> {
     try {
-      const [workOrders, appointments] = await Promise.all([
+      const [workOrders, appointments, tools] = await Promise.all([
         this.workOrdersService.list(),
-        this.appointmentsService.list()
+        this.appointmentsService.list(),
+        this.toolsService.getTools()
       ]);
       
       this.workOrders.set(workOrders);
       this.appointments.set(appointments);
+      this.tools.set(tools);
     } catch (error) {
       this.error.set('Erreur lors du chargement des données');
     }
@@ -677,8 +680,7 @@ export class ClientWorkOrdersPageComponent {
   }
 
   getResourceName(toolId: string): string {
-    // Pour l'instant, on affiche l'ID. Dans une version complète, 
-    // on chargerait les outils pour avoir les noms
-    return `Outil/Consommable (${toolId.substring(0, 8)}...)`;
+    const tool = this.tools().find(t => t.id === toolId);
+    return tool ? tool.name : `Outil (${toolId.substring(0, 8)}...)`;
   }
 }

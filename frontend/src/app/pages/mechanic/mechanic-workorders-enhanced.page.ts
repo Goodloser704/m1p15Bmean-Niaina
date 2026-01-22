@@ -800,7 +800,7 @@ export class MechanicWorkOrdersEnhancedPageComponent {
         this.currentResources()
       );
       
-      this.success.set('Estimation créée et envoyée au manager !');
+      this.success.set('Estimation créée et envoyée au client pour approbation !');
       this.closeEstimationModal();
       await this.loadData();
     } catch (error: any) {

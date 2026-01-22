@@ -104,7 +104,6 @@ router.patch("/:id/estimate", requireAuth, requireRole("mechanic"), async (req, 
       return res.status(403).json({ message: "Forbidden" });
     }
 
-    // Mise à jour des tâches et note
     workOrder.tasks = tasks.map((t) => ({ label: String(t.label || ""), price: Number(t.price || 0) }));
     workOrder.estimationNote = estimationNote || "";
     
@@ -120,7 +119,8 @@ router.patch("/:id/estimate", requireAuth, requireRole("mechanic"), async (req, 
       console.log(`🔧 Ressources requises pour WorkOrder ${id}:`, workOrder.requiredResources.length);
     }
     
-    workOrder.status = "estimated";
+    // Envoyer directement au client pour approbation
+    workOrder.status = "pending_client_approval";
     await workOrder.save();
 
     return res.json({ workOrder, total: workOrder.total });
