@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { WorkOrdersService } from '../../core/services/workorders.service';
 import { AppointmentsService } from '../../core/services/appointments.service';
+import { ToolsService } from '../../core/services/tools.service';
 import type { WorkOrder, Appointment, WorkOrderMessage } from '../../core/models';
 
 @Component({
@@ -49,6 +50,26 @@ import type { WorkOrder, Appointment, WorkOrderMessage } from '../../core/models
               </tr>
             </tfoot>
           </table>
+        </div>
+
+        <!-- Outils et consommables nécessaires -->
+        <div class="resources-section" *ngIf="wo.requiredResources && wo.requiredResources.length > 0">
+          <h4>🛠️ Outils et consommables nécessaires :</h4>
+          <div class="resources-info">
+            <p class="info-text">
+              <em>Les outils et consommables suivants seront utilisés pour votre réparation :</em>
+            </p>
+            <ul class="resources-list">
+              <li *ngFor="let resource of wo.requiredResources" class="resource-item">
+                <span class="resource-name">{{ getResourceName(resource.toolId) }}</span>
+                <span class="resource-quantity">{{ resource.quantityNeeded }} unité(s)</span>
+                <span class="resource-notes" *ngIf="resource.notes">- {{ resource.notes }}</span>
+              </li>
+            </ul>
+            <p class="availability-note">
+              ✅ Tous les outils nécessaires sont disponibles et seront réservés lors de votre approbation.
+            </p>
+          </div>
         </div>
 
         <!-- Messages de négociation -->
@@ -459,6 +480,74 @@ import type { WorkOrder, Appointment, WorkOrderMessage } from '../../core/models
         border-radius: 8px;
         border-left: 4px solid #e67e22;
       }
+
+      .resources-section {
+        margin: 20px 0;
+        padding: 16px;
+        background: rgba(52, 152, 219, 0.1);
+        border: 2px solid #3498db;
+        border-radius: 8px;
+      }
+
+      .resources-section h4 {
+        color: #3498db;
+        margin-bottom: 12px;
+      }
+
+      .resources-info {
+        color: #f8f9fa;
+      }
+
+      .info-text {
+        color: #bdc3c7;
+        font-style: italic;
+        margin-bottom: 12px;
+      }
+
+      .resources-list {
+        list-style: none;
+        padding: 0;
+        margin: 12px 0;
+      }
+
+      .resource-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 8px 12px;
+        margin: 4px 0;
+        background: rgba(52, 73, 94, 0.4);
+        border-radius: 6px;
+        border-left: 3px solid #3498db;
+      }
+
+      .resource-name {
+        font-weight: 600;
+        color: #ffffff;
+        flex: 1;
+      }
+
+      .resource-quantity {
+        color: #3498db;
+        font-weight: 600;
+        font-size: 14px;
+      }
+
+      .resource-notes {
+        color: #95a5a6;
+        font-size: 12px;
+        font-style: italic;
+      }
+
+      .availability-note {
+        background: rgba(39, 174, 96, 0.2);
+        border: 1px solid #27ae60;
+        color: #2ecc71;
+        padding: 8px 12px;
+        border-radius: 6px;
+        font-size: 14px;
+        margin-top: 12px;
+      }
     `
   ]
 })
@@ -476,7 +565,8 @@ export class ClientWorkOrdersPageComponent {
 
   constructor(
     private workOrdersService: WorkOrdersService,
-    private appointmentsService: AppointmentsService
+    private appointmentsService: AppointmentsService,
+    private toolsService: ToolsService
   ) {}
 
   async ngOnInit(): Promise<void> {
@@ -584,5 +674,11 @@ export class ClientWorkOrdersPageComponent {
   closeDetailsModal(): void {
     this.showDetailsModal.set(false);
     this.selectedWorkOrder.set(null);
+  }
+
+  getResourceName(toolId: string): string {
+    // Pour l'instant, on affiche l'ID. Dans une version complète, 
+    // on chargerait les outils pour avoir les noms
+    return `Outil/Consommable (${toolId.substring(0, 8)}...)`;
   }
 }
