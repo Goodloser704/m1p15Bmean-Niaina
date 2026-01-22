@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { API_BASE_URL } from '../api.config';
-import type { WorkOrder, WorkOrderTask } from '../models';
+import type { WorkOrder, WorkOrderTask, RequiredResource } from '../models';
 
 @Injectable({ providedIn: 'root' })
 export class WorkOrdersService {
@@ -61,11 +61,17 @@ export class WorkOrdersService {
     );
   }
 
-  async updateEstimation(id: string, tasks: WorkOrderTask[], estimationNote?: string): Promise<{ workOrder: WorkOrder; total: number }> {
+  async updateEstimation(
+    id: string, 
+    tasks: WorkOrderTask[], 
+    estimationNote?: string,
+    requiredResources?: RequiredResource[]
+  ): Promise<{ workOrder: WorkOrder; total: number }> {
     return await firstValueFrom(
       this.http.patch<{ workOrder: WorkOrder; total: number }>(`${API_BASE_URL}/api/workorders/${id}/estimate`, {
         tasks,
-        estimationNote
+        estimationNote,
+        requiredResources
       })
     );
   }

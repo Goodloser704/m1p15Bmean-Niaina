@@ -2,6 +2,8 @@ const express = require("express");
 const mongoose = require("mongoose");
 const WorkOrder = require("../models/WorkOrder");
 const Appointment = require("../models/Appointment");
+const Tool = require("../models/Tool");
+const ToolReservation = require("../models/ToolReservation");
 const { requireAuth, requireRole } = require("../middleware/auth");
 
 const router = express.Router();
@@ -91,7 +93,7 @@ router.patch("/:id/tasks", requireAuth, requireRole(["mechanic", "manager"]), as
 router.patch("/:id/estimate", requireAuth, requireRole("mechanic"), async (req, res) => {
   try {
     const { id } = req.params;
-    const { tasks, estimationNote } = req.body || {};
+    const { tasks, estimationNote, requiredResources } = req.body || {};
     
     if (!Array.isArray(tasks)) return res.status(400).json({ message: "tasks must be an array" });
 
@@ -102,8 +104,22 @@ router.patch("/:id/estimate", requireAuth, requireRole("mechanic"), async (req, 
       return res.status(403).json({ message: "Forbidden" });
     }
 
+    // Mise à jour des tâches et note
     workOrder.tasks = tasks.map((t) => ({ label: String(t.label || ""), price: Number(t.price || 0) }));
     workOrder.estimationNote = estimationNote || "";
+    
+    // Mise à jour des ressources nécessaires
+    if (requiredResources && Array.isArray(requiredResources)) {
+      workOrder.requiredResources = requiredResources.map(r => ({
+        toolId: r.toolId,
+        quantityNeeded: Number(r.quantityNeeded || 1),
+        estimatedDuration: Number(r.estimatedDuration || 0),
+        notes: r.notes || ""
+      }));
+      
+      console.log(`🔧 Ressources requises pour WorkOrder ${id}:`, workOrder.requiredResources.length);
+    }
+    
     workOrder.status = "estimated";
     await workOrder.save();
 
@@ -180,8 +196,65 @@ router.patch("/:id/client-decision", requireAuth, requireRole("client"), async (
     workOrder.clientApproved = Boolean(approved);
     workOrder.clientNote = clientNote || "";
     workOrder.status = approved ? "approved" : "rejected";
-    await workOrder.save();
 
+    // Si approuvé, réserver automatiquement les outils nécessaires
+    if (approved && workOrder.requiredResources && workOrder.requiredResources.length > 0) {
+      try {
+        console.log(`🔒 Réservation automatique des outils pour WorkOrder ${id}`);
+        
+        const reservations = [];
+        const errors = [];
+
+        for (const resource of workOrder.requiredResources) {
+          try {
+            const tool = await Tool.findById(resource.toolId);
+            if (!tool) {
+              errors.push(`Outil ${resource.toolId} non trouvé`);
+              continue;
+            }
+
+            if (!tool.reserve(resource.quantityNeeded)) {
+              errors.push(`Quantité insuffisante pour ${tool.name} (demandé: ${resource.quantityNeeded}, disponible: ${tool.availableQuantity})`);
+              continue;
+            }
+
+            await tool.save();
+
+            // Créer la réservation
+            const reservation = new ToolReservation({
+              workOrderId: workOrder._id,
+              mechanicId: workOrder.mechanicId,
+              toolId: resource.toolId,
+              quantityReserved: resource.quantityNeeded
+            });
+
+            await reservation.save();
+            reservations.push(reservation);
+
+            console.log(`✅ Réservé: ${tool.name} x${resource.quantityNeeded}`);
+
+          } catch (error) {
+            errors.push(`Erreur pour ${resource.toolId}: ${error.message}`);
+          }
+        }
+
+        // Marquer les ressources comme réservées si au moins une réservation a réussi
+        if (reservations.length > 0) {
+          workOrder.resourcesReserved = true;
+          console.log(`🎉 ${reservations.length} outils réservés avec succès`);
+        }
+
+        if (errors.length > 0) {
+          console.warn(`⚠️ Erreurs lors de la réservation:`, errors);
+        }
+
+      } catch (reservationError) {
+        console.error("❌ Erreur lors de la réservation automatique:", reservationError);
+        // Ne pas bloquer l'approbation si la réservation échoue
+      }
+    }
+
+    await workOrder.save();
     return res.json({ workOrder });
   } catch (error) {
     console.error("❌ Error in client decision:", error);

@@ -5,8 +5,9 @@ import { AppointmentsService } from '../../core/services/appointments.service';
 import { WorkOrdersService } from '../../core/services/workorders.service';
 import { VehiclesService } from '../../core/services/vehicles.service';
 import { UsersService } from '../../core/services/users.service';
+import { ToolsService } from '../../core/services/tools.service';
 import { AuthService } from '../../core/auth/auth.service';
-import type { Appointment, WorkOrder, WorkOrderTask, Vehicle, User } from '../../core/models';
+import type { Appointment, WorkOrder, WorkOrderTask, Vehicle, User, Tool, RequiredResource, ToolAvailability } from '../../core/models';
 
 @Component({
   standalone: true,

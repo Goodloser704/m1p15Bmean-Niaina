@@ -9,7 +9,7 @@ import { ClientVehiclesPageComponent } from './pages/client/client-vehicles.page
 import { ClientAppointmentsPageComponent } from './pages/client/client-appointments.page';
 import { ClientWorkOrdersPageComponent } from './pages/client/client-workorders.page';
 import { ClientInvoicesPageComponent } from './pages/client/client-invoices.page';
-import { MechanicWorkOrdersPageComponent } from './pages/mechanic/mechanic-workorders.page';
+import { MechanicWorkOrdersEnhancedPageComponent } from './pages/mechanic/mechanic-workorders-enhanced.page';
 import { MechanicEarningsPageComponent } from './pages/mechanic/mechanic-earnings.page';
 import { MechanicNearbyClientsPageComponent } from './pages/mechanic/mechanic-nearby-clients.page';
 import { MechanicToolsPageComponent } from './pages/mechanic/mechanic-tools.page';
@@ -43,7 +43,7 @@ export const routes: Routes = [
     canActivate: [authGuard, roleGuard('mechanic')],
     children: [
       { path: '', pathMatch: 'full', redirectTo: 'workorders' },
-      { path: 'workorders', component: MechanicWorkOrdersPageComponent },
+      { path: 'workorders', component: MechanicWorkOrdersEnhancedPageComponent },
       { path: 'tools', component: MechanicToolsPageComponent },
       { path: 'earnings', component: MechanicEarningsPageComponent },
       { path: 'nearby-clients', component: MechanicNearbyClientsPageComponent }
