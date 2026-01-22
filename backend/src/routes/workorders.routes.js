@@ -292,10 +292,21 @@ router.patch("/:id/start-repair", requireAuth, requireRole("mechanic"), async (r
       return res.status(400).json({ message: "Work order must be approved to start repair" });
     }
 
+    // Marquer les réservations comme "en cours d'utilisation"
+    const reservations = await ToolReservation.find({
+      workOrderId: workOrder._id,
+      status: "reserved"
+    });
+
+    for (const reservation of reservations) {
+      reservation.startUsing();
+      await reservation.save();
+    }
+
     workOrder.status = "in_progress";
     await workOrder.save();
 
-    console.log(`🔧 Réparation commencée pour WorkOrder ${id}`);
+    console.log(`🔧 Réparation commencée pour WorkOrder ${id} - ${reservations.length} outils en cours d'utilisation`);
     return res.json({ workOrder });
   } catch (error) {
     console.error("❌ Error starting repair:", error);
@@ -318,10 +329,44 @@ router.patch("/:id/complete-repair", requireAuth, requireRole("mechanic"), async
       return res.status(400).json({ message: "Work order must be in progress to complete" });
     }
 
+    // Gérer automatiquement les outils et consommables
+    const reservations = await ToolReservation.find({
+      workOrderId: workOrder._id,
+      status: { $in: ["reserved", "in_use"] }
+    });
+
+    console.log(`🔧 Finalisation des outils pour WorkOrder ${id}:`);
+    
+    for (const reservation of reservations) {
+      const tool = await Tool.findById(reservation.toolId);
+      if (!tool) continue;
+
+      if (tool.isConsumable) {
+        // CONSOMMABLE : Marquer comme consommé et réduire le stock total
+        console.log(`📦 Consommation: ${tool.name} x${reservation.quantityReserved}`);
+        
+        tool.consume(reservation.quantityReserved);
+        await tool.save();
+        
+        reservation.markAsConsumed(reservation.quantityReserved, "Consommé lors de la réparation");
+        await reservation.save();
+        
+      } else {
+        // OUTIL RÉUTILISABLE : Retourner au stock
+        console.log(`🔧 Retour: ${tool.name} x${reservation.quantityReserved}`);
+        
+        tool.release(reservation.quantityReserved);
+        await tool.save();
+        
+        reservation.returnTool(reservation.quantityReserved, "good", "Retourné après réparation");
+        await reservation.save();
+      }
+    }
+
     workOrder.status = "validated";
     await workOrder.save();
 
-    console.log(`✅ Réparation terminée pour WorkOrder ${id}`);
+    console.log(`✅ Réparation terminée pour WorkOrder ${id} - Outils gérés automatiquement`);
     return res.json({ workOrder });
   } catch (error) {
     console.error("❌ Error completing repair:", error);
