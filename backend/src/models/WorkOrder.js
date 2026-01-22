@@ -8,6 +8,17 @@ const workOrderTaskSchema = new mongoose.Schema(
   { _id: false }
 );
 
+// Schéma pour les outils/consommables requis dans l'estimation
+const requiredResourceSchema = new mongoose.Schema(
+  {
+    toolId: { type: mongoose.Schema.Types.ObjectId, ref: "Tool", required: true },
+    quantityNeeded: { type: Number, required: true, min: 1 },
+    estimatedDuration: { type: Number, default: 0 }, // Durée d'utilisation en minutes (pour outils)
+    notes: String
+  },
+  { _id: false }
+);
+
 const workOrderMessageSchema = new mongoose.Schema(
   {
     sender: { type: String, required: true, enum: ["client", "manager", "mechanic"] },
@@ -27,6 +38,8 @@ const workOrderSchema = new mongoose.Schema(
       default: "draft" 
     },
     tasks: { type: [workOrderTaskSchema], default: [] },
+    requiredResources: { type: [requiredResourceSchema], default: [] }, // Outils/consommables nécessaires
+    resourcesReserved: { type: Boolean, default: false }, // Ressources réservées ?
     estimationNote: { type: String, trim: true },
     clientApproved: { type: Boolean },
     clientNote: { type: String, trim: true },

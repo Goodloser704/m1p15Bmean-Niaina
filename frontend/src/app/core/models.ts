@@ -70,6 +70,14 @@ export interface WorkOrderTask {
   price: number;
 }
 
+// Nouveaux modèles pour les outils et ressources
+export interface RequiredResource {
+  toolId: string;
+  quantityNeeded: number;
+  estimatedDuration?: number;
+  notes?: string;
+}
+
 export interface WorkOrderMessage {
   _id: string;
   sender: 'client' | 'manager' | 'mechanic';
@@ -83,6 +91,8 @@ export interface WorkOrder {
   mechanicId?: string;
   status: WorkOrderStatus;
   tasks: WorkOrderTask[];
+  requiredResources?: RequiredResource[];
+  resourcesReserved?: boolean;
   total?: number;
   estimationNote?: string;
   clientApproved?: boolean;
@@ -190,5 +200,59 @@ export interface Garage {
   active: boolean;
   createdAt: string;
   updatedAt: string;
+}
+
+// Modèles pour la gestion des outils
+export type ToolCondition = 'excellent' | 'good' | 'fair' | 'poor' | 'out_of_order';
+export type ReservationStatus = 'reserved' | 'in_use' | 'returned' | 'consumed';
+
+export interface Tool {
+  id: string;
+  name: string;
+  category: string;
+  description?: string;
+  totalQuantity: number;
+  availableQuantity: number;
+  isConsumable: boolean;
+  unitPrice: number;
+  minStockAlert: number;
+  supplier?: string;
+  reference?: string;
+  location?: string;
+  condition: ToolCondition;
+  lastMaintenanceDate?: string;
+  nextMaintenanceDate?: string;
+  isLowStock: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ToolReservation {
+  id: string;
+  workOrderId: string;
+  mechanicId: string;
+  toolId: string;
+  quantityReserved: number;
+  quantityUsed: number;
+  status: ReservationStatus;
+  reservedAt: string;
+  startedAt?: string;
+  returnedAt?: string;
+  notes?: string;
+  condition: ToolCondition;
+  createdAt: string;
+  updatedAt: string;
+  // Données populées
+  tool?: Tool;
+  workOrder?: WorkOrder;
+}
+
+export interface ToolAvailability {
+  toolId: string;
+  toolName?: string;
+  quantityNeeded: number;
+  quantityAvailable: number;
+  available: boolean;
+  reason?: string;
 }
 

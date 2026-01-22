@@ -11,6 +11,7 @@ const workOrdersRoutes = require("./routes/workorders.routes");
 const vatRoutes = require("./routes/vat.routes");
 const invoicesRoutes = require("./routes/invoices.routes");
 const mapsRoutes = require("./routes/maps.routes");
+const toolsRoutes = require("./routes/tools.routes");
 
 function createApp() {
   const app = express();
@@ -43,6 +44,7 @@ function createApp() {
   app.use("/api/vat", vatRoutes);
   app.use("/api/invoices", invoicesRoutes);
   app.use("/api/maps", mapsRoutes);
+  app.use("/api/tools", toolsRoutes);
 
   app.use((req, res) => {
     res.status(404).json({ message: "Not found" });

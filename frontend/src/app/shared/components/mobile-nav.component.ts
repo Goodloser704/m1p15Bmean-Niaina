@@ -82,6 +82,10 @@ import { AuthService } from '../../core/auth/auth.service';
               <span class="nav-icon">🔧</span>
               <span class="nav-text">Atelier</span>
             </a>
+            <a routerLink="/mechanic/tools" class="nav-link" (click)="closeMenu()">
+              <span class="nav-icon">🛠️</span>
+              <span class="nav-text">Outils</span>
+            </a>
             <a routerLink="/mechanic/earnings" class="nav-link" (click)="closeMenu()">
               <span class="nav-icon">💰</span>
               <span class="nav-text">Revenus</span>
@@ -105,6 +109,10 @@ import { AuthService } from '../../core/auth/auth.service';
             <a routerLink="/manager/vehicles" class="nav-link" (click)="closeMenu()">
               <span class="nav-icon">🚙</span>
               <span class="nav-text">Véhicules</span>
+            </a>
+            <a routerLink="/manager/tools" class="nav-link" (click)="closeMenu()">
+              <span class="nav-icon">🛠️</span>
+              <span class="nav-text">Outils</span>
             </a>
             <a routerLink="/manager/registrations" class="nav-link" (click)="closeMenu()">
               <span class="nav-icon">👥</span>
