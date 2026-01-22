@@ -108,5 +108,26 @@ export class WorkOrdersService {
     );
     return res.workOrder;
   }
+
+  async startRepair(id: string): Promise<WorkOrder> {
+    const res = await firstValueFrom(
+      this.http.patch<{ workOrder: WorkOrder }>(`${API_BASE_URL}/api/workorders/${id}/start-repair`, {})
+    );
+    return res.workOrder;
+  }
+
+  async completeRepair(id: string): Promise<WorkOrder> {
+    const res = await firstValueFrom(
+      this.http.patch<{ workOrder: WorkOrder }>(`${API_BASE_URL}/api/workorders/${id}/complete-repair`, {})
+    );
+    return res.workOrder;
+  }
+
+  async markAsPaid(id: string): Promise<WorkOrder> {
+    const res = await firstValueFrom(
+      this.http.patch<{ workOrder: WorkOrder }>(`${API_BASE_URL}/api/workorders/${id}/mark-paid`, {})
+    );
+    return res.workOrder;
+  }
 }
 

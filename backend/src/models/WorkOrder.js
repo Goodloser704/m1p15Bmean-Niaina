@@ -34,7 +34,7 @@ const workOrderSchema = new mongoose.Schema(
     status: { 
       type: String, 
       required: true, 
-      enum: ["draft", "estimated", "pending_client_approval", "approved", "rejected", "validated", "paid"], 
+      enum: ["draft", "estimated", "pending_client_approval", "approved", "rejected", "in_progress", "validated", "paid"], 
       default: "draft" 
     },
     tasks: { type: [workOrderTaskSchema], default: [] },

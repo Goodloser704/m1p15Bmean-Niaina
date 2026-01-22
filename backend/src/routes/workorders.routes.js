@@ -277,5 +277,78 @@ router.patch("/:id/validate", requireAuth, requireRole("manager"), async (req, r
   }
 });
 
+router.patch("/:id/start-repair", requireAuth, requireRole("mechanic"), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const workOrder = await WorkOrder.findById(id);
+    if (!workOrder) return res.status(404).json({ message: "Work order not found" });
+
+    // Vérifier que le mécanicien est assigné à ce WorkOrder
+    if (String(workOrder.mechanicId) !== String(req.user._id)) {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+
+    if (workOrder.status !== "approved") {
+      return res.status(400).json({ message: "Work order must be approved to start repair" });
+    }
+
+    workOrder.status = "in_progress";
+    await workOrder.save();
+
+    console.log(`🔧 Réparation commencée pour WorkOrder ${id}`);
+    return res.json({ workOrder });
+  } catch (error) {
+    console.error("❌ Error starting repair:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+router.patch("/:id/complete-repair", requireAuth, requireRole("mechanic"), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const workOrder = await WorkOrder.findById(id);
+    if (!workOrder) return res.status(404).json({ message: "Work order not found" });
+
+    // Vérifier que le mécanicien est assigné à ce WorkOrder
+    if (String(workOrder.mechanicId) !== String(req.user._id)) {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+
+    if (workOrder.status !== "in_progress") {
+      return res.status(400).json({ message: "Work order must be in progress to complete" });
+    }
+
+    workOrder.status = "validated";
+    await workOrder.save();
+
+    console.log(`✅ Réparation terminée pour WorkOrder ${id}`);
+    return res.json({ workOrder });
+  } catch (error) {
+    console.error("❌ Error completing repair:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+router.patch("/:id/mark-paid", requireAuth, requireRole("manager"), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const workOrder = await WorkOrder.findById(id);
+    if (!workOrder) return res.status(404).json({ message: "Work order not found" });
+
+    if (workOrder.status !== "validated") {
+      return res.status(400).json({ message: "Work order must be validated to mark as paid" });
+    }
+
+    workOrder.status = "paid";
+    await workOrder.save();
+
+    console.log(`💰 WorkOrder ${id} marqué comme payé`);
+    return res.json({ workOrder });
+  } catch (error) {
+    console.error("❌ Error marking as paid:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+});
+
 module.exports = router;
 

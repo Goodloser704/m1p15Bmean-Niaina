@@ -87,7 +87,66 @@ import type { WorkOrder, Appointment, User, Vehicle, WorkOrderTask } from '../..
       </div>
 
       <div class="card">
-        <h3>Ordres de réparation existants</h3>
+        <h3>✅ Réparations Terminées (À Valider)</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Client</th>
+              <th>Véhicule</th>
+              <th>Mécanicien</th>
+              <th>Total</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let w of validatedWorkOrders()">
+              <td>{{ w.updatedAt | date:'short' }}</td>
+              <td>{{ getClientName(w.appointmentId) }}</td>
+              <td>{{ getVehicleInfo(w.appointmentId) }}</td>
+              <td>{{ getUserName(w.mechanicId) || 'Non assigné' }}</td>
+              <td>{{ w.total }}€</td>
+              <td>
+                <button (click)="markAsPaid(w._id)" [disabled]="processing()" class="mechanic-btn mechanic-btn-success">
+                  💰 Marquer comme Payé
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <p *ngIf="validatedWorkOrders().length === 0" class="info">
+          Aucune réparation terminée en attente de validation.
+        </p>
+      </div>
+
+      <div class="card">
+        <h3>💰 Réparations Payées</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Date Paiement</th>
+              <th>Client</th>
+              <th>Véhicule</th>
+              <th>Mécanicien</th>
+              <th>Total</th>
+              <th>Commission</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let w of paidWorkOrders()">
+              <td>{{ w.updatedAt | date:'short' }}</td>
+              <td>{{ getClientName(w.appointmentId) }}</td>
+              <td>{{ getVehicleInfo(w.appointmentId) }}</td>
+              <td>{{ getUserName(w.mechanicId) || 'Non assigné' }}</td>
+              <td>{{ w.total }}€</td>
+              <td>{{ calculateCommission(w) }}€</td>
+            </tr>
+          </tbody>
+        </table>
+        <p *ngIf="paidWorkOrders().length === 0" class="info">
+          Aucune réparation payée.
+        </p>
+      </div>
         <table>
           <thead>
             <tr>
@@ -572,6 +631,16 @@ export class ManagerWorkOrdersPageComponent {
     return this.workOrders().filter(wo => wo.status === 'pending_client_approval');
   }
 
+  // Work orders terminés en attente de validation de paiement
+  validatedWorkOrders() {
+    return this.workOrders().filter(wo => wo.status === 'validated');
+  }
+
+  // Work orders payés
+  paidWorkOrders() {
+    return this.workOrders().filter(wo => wo.status === 'paid');
+  }
+
   getUserName(userId?: string): string {
     if (!userId) return '';
     const user = this.users().find(u => u.id === userId);
@@ -650,6 +719,29 @@ export class ManagerWorkOrdersPageComponent {
     } catch (error: any) {
       this.error.set(error.message || 'Validation impossible');
     }
+  }
+
+  async markAsPaid(id: string): Promise<void> {
+    this.processing.set(true);
+    this.error.set(null);
+    this.success.set(null);
+    try {
+      await this.workOrdersService.markAsPaid(id);
+      this.success.set('Réparation marquée comme payée ! Les commissions du mécanicien sont maintenant calculées.');
+      await this.refresh();
+    } catch (error: any) {
+      this.error.set(error.message || 'Erreur lors du marquage comme payé');
+    } finally {
+      this.processing.set(false);
+    }
+  }
+
+  calculateCommission(workOrder: WorkOrder): number {
+    const mechanic = this.users().find(u => u.id === workOrder.mechanicId);
+    if (!mechanic || !mechanic.commissionRate) return 0;
+    
+    const commission = (workOrder.total || 0) * (mechanic.commissionRate / 100);
+    return Math.round(commission * 100) / 100;
   }
 
   async reviewEstimation(workOrder: WorkOrder): Promise<void> {

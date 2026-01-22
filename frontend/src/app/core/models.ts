@@ -63,7 +63,7 @@ export interface Appointment {
   mechanicId?: string;
 }
 
-export type WorkOrderStatus = 'draft' | 'estimated' | 'pending_client_approval' | 'approved' | 'rejected' | 'validated' | 'paid';
+export type WorkOrderStatus = 'draft' | 'estimated' | 'pending_client_approval' | 'approved' | 'rejected' | 'in_progress' | 'validated' | 'paid';
 
 export interface WorkOrderTask {
   label: string;

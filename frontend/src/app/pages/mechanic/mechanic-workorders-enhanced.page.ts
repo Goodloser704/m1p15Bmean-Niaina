@@ -83,6 +83,29 @@ import type { Appointment, WorkOrder, WorkOrderTask, Vehicle, Tool, RequiredReso
           </div>
         </div>
 
+        <!-- Work Orders en cours de réparation -->
+        <div class="card" *ngIf="inProgressWorkOrders().length > 0">
+          <h3>🔧 Réparations en Cours</h3>
+          <div class="workorders-list">
+            <div *ngFor="let workOrder of inProgressWorkOrders()" class="workorder-item in-progress">
+              <div class="workorder-info">
+                <div class="vehicle-info">
+                  <strong>{{ getVehicleInfoByWorkOrder(workOrder) }}</strong>
+                  <span class="total">{{ workOrder.total | currency:'EUR':'symbol':'1.2-2' }}</span>
+                </div>
+                <div class="progress-info">
+                  🔧 Réparation en cours...
+                </div>
+              </div>
+              <div class="workorder-actions">
+                <button (click)="completeRepair(workOrder)" class="btn-primary">
+                  ✅ Marquer comme Terminée
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- Modal d'Estimation avec Outils -->
         <div class="modal" *ngIf="showEstimationModal" (click)="closeEstimationModal()">
           <div class="modal-content" (click)="$event.stopPropagation()">
@@ -243,6 +266,11 @@ import type { Appointment, WorkOrder, WorkOrderTask, Vehicle, Tool, RequiredReso
       background: rgba(39, 174, 96, 0.1);
     }
 
+    .workorder-item.in-progress {
+      border-color: #f39c12;
+      background: rgba(243, 156, 18, 0.1);
+    }
+
     .appointment-info, .workorder-info {
       flex: 1;
     }
@@ -284,6 +312,12 @@ import type { Appointment, WorkOrder, WorkOrderTask, Vehicle, Tool, RequiredReso
 
     .resources-info {
       color: #3498db;
+      font-size: 12px;
+      margin-top: 4px;
+    }
+
+    .progress-info {
+      color: #f39c12;
       font-size: 12px;
       margin-top: 4px;
     }
@@ -626,6 +660,10 @@ export class MechanicWorkOrdersEnhancedPageComponent {
     return this.workOrders().filter(wo => wo.status === 'approved');
   });
 
+  inProgressWorkOrders = computed(() => {
+    return this.workOrders().filter(wo => wo.status === 'in_progress');
+  });
+
   constructor(
     private appointmentsService: AppointmentsService,
     private workOrdersService: WorkOrdersService,
@@ -811,8 +849,33 @@ export class MechanicWorkOrdersEnhancedPageComponent {
   }
 
   async startRepair(workOrder: WorkOrder): Promise<void> {
-    // Logique pour commencer la réparation
-    this.success.set('Réparation commencée ! Les outils sont maintenant marqués comme en cours d\'utilisation.');
+    this.processing.set(true);
+    this.error.set(null);
+    
+    try {
+      await this.workOrdersService.startRepair(workOrder._id);
+      this.success.set('Réparation commencée ! Les outils sont maintenant marqués comme en cours d\'utilisation.');
+      await this.loadData();
+    } catch (error: any) {
+      this.error.set(error.message || 'Erreur lors du démarrage de la réparation');
+    } finally {
+      this.processing.set(false);
+    }
+  }
+
+  async completeRepair(workOrder: WorkOrder): Promise<void> {
+    this.processing.set(true);
+    this.error.set(null);
+    
+    try {
+      await this.workOrdersService.completeRepair(workOrder._id);
+      this.success.set('Réparation terminée ! En attente de validation du manager.');
+      await this.loadData();
+    } catch (error: any) {
+      this.error.set(error.message || 'Erreur lors de la finalisation de la réparation');
+    } finally {
+      this.processing.set(false);
+    }
   }
 
   getVehicleInfo(vehicleId: string): string {
