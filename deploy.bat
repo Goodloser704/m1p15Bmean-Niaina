@@ -49,7 +49,7 @@ echo       - Output Directory: dist/m1p12mean-xxx-yyy/browser
 echo.
 echo    3. Tester l'application:
 echo       - Frontend: https://m1p15-bmean-niaina.vercel.app
-echo       - Comptes: mechanic@demo.com / role123
+echo       - Comptes: mechanic@demo.com / mechanic123
 echo.
 echo 📖 Voir GUIDE-DEPLOIEMENT-PRODUCTION.md pour les détails complets
 echo.

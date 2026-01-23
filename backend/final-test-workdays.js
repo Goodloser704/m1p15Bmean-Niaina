@@ -61,11 +61,11 @@ async function finalTestWorkdays() {
     console.log('\n🧪 COMPTES DE TEST RECOMMANDÉS:');
     console.log('   🔧 Mécaniciens:');
     mechanics.forEach(mechanic => {
-      console.log(`      • ${mechanic.fullName}: ${mechanic.email} / role123`);
+      console.log(`      • ${mechanic.fullName}: ${mechanic.email} / mechanic123`);
       console.log(`        (${mechanic.contractType} - ${mechanic.baseSalary}€)`);
     });
-    console.log('   👔 Manager: manager@demo.com / role123');
-    console.log('   👤 Client: client@demo.com / role123');
+    console.log('   👔 Manager: manager@demo.com / manager123');
+    console.log('   👤 Client: client@demo.com / client123');
     
     console.log('\n🎯 FONCTIONNALITÉS À TESTER:');
     console.log('   1. 📅 Déclaration de jours de travail (mécanicien)');

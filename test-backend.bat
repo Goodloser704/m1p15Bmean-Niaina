@@ -4,16 +4,20 @@ echo.
 
 cd backend
 
-echo 📊 Test rapide de la base de données...
-node quick-test.js
+echo 📊 Test complet de tous les systèmes...
+node test-all-systems.js
 
 echo.
 echo 🔧 Test du workflow des outils...
 node test-tools-workflow.js
 
 echo.
-echo 📋 Liste des outils...
-node list-tools.js
+echo 📅 Test final du système workdays...
+node final-test-workdays.js
+
+echo.
+echo 💰 Test du calcul des salaires...
+node test-salary-calculation.js
 
 echo.
 echo ✅ Tests backend terminés !

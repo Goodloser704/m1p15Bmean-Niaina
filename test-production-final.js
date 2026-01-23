@@ -46,9 +46,9 @@ async function testProductionFinal() {
   // Test 3: Authentification
   console.log('🧪 TEST 3: Système d\'Authentification');
   const testAccounts = [
-    { email: 'mechanic@demo.com', password: 'role123', role: 'mechanic' },
-    { email: 'manager@demo.com', password: 'role123', role: 'manager' },
-    { email: 'client@demo.com', password: 'role123', role: 'client' }
+    { email: 'mechanic@demo.com', password: 'mechanic123', role: 'mechanic' },
+    { email: 'manager@demo.com', password: 'manager123', role: 'manager' },
+    { email: 'client@demo.com', password: 'client123', role: 'client' }
   ];
   
   let authSuccess = 0;
@@ -79,7 +79,7 @@ async function testProductionFinal() {
     // D'abord se connecter pour obtenir un token
     const loginData = JSON.stringify({
       email: 'mechanic@demo.com',
-      password: 'role123'
+      password: 'mechanic123'
     });
     
     const loginResult = await makeRequest(config.backend + '/api/auth/login', 'POST', loginData);
@@ -119,12 +119,12 @@ async function testProductionFinal() {
   
   console.log('🎯 COMPTES DE TEST DISPONIBLES:');
   console.log('   🔧 Mécaniciens:');
-  console.log('      • mechanic@demo.com / role123 (Mensuel - 2500€)');
-  console.log('      • jean.dupont@garage.com / role123 (Journalier - 120€/jour)');
-  console.log('      • marie.martin@garage.com / role123 (Mensuel - 2800€)');
-  console.log('      • pierre.durand@garage.com / role123 (Commission - 25%)');
-  console.log('   👔 Manager: manager@demo.com / role123');
-  console.log('   👤 Client: client@demo.com / role123');
+  console.log('      • mechanic@demo.com / mechanic123 (Mensuel - 2500€)');
+  console.log('      • jean.dupont@garage.com / mechanic123 (Journalier - 120€/jour)');
+  console.log('      • marie.martin@garage.com / mechanic123 (Mensuel - 2800€)');
+  console.log('      • pierre.durand@garage.com / mechanic123 (Commission - 25%)');
+  console.log('   👔 Manager: manager@demo.com / manager123');
+  console.log('   👤 Client: client@demo.com / client123');
   console.log('');
   
   console.log('🎮 FONCTIONNALITÉS À TESTER:');

@@ -11,12 +11,12 @@ Système de gestion de garage automobile avec déclaration des jours de travail 
 
 | Rôle | Email | Mot de passe | Type de contrat |
 |------|-------|--------------|-----------------|
-| Client | `client@demo.com` | `role123` | - |
-| Manager | `manager@demo.com` | `role123` | - |
-| Mécanicien | `mechanic@demo.com` | `role123` | Mensuel (2500€) |
-| Mécanicien | `jean.dupont@garage.com` | `role123` | Journalier (120€/jour) |
-| Mécanicien | `marie.martin@garage.com` | `role123` | Mensuel (2800€) |
-| Mécanicien | `pierre.durand@garage.com` | `role123` | Commission (25%) |
+| Client | `client@demo.com` | `client123` | - |
+| Manager | `manager@demo.com` | `manager123` | - |
+| Mécanicien | `mechanic@demo.com` | `mechanic123` | Mensuel (2500€) |
+| Mécanicien | `jean.dupont@garage.com` | `mechanic123` | Journalier (120€/jour) |
+| Mécanicien | `marie.martin@garage.com` | `mechanic123` | Mensuel (2800€) |
+| Mécanicien | `pierre.durand@garage.com` | `mechanic123` | Commission (25%) |
 
 ## 🎯 Nouvelles Fonctionnalités
 

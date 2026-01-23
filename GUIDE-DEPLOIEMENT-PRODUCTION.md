@@ -76,12 +76,12 @@ mongodb+srv://faustresilient_db_user:NjpL9dxRHG7I0Bdn@cluster0.9fmmkpa.mongodb.n
 
 | Rôle | Email | Mot de passe | Description |
 |------|-------|--------------|-------------|
-| Client | `client@demo.com` | `role123` | Compte client de démonstration |
-| Manager | `manager@demo.com` | `role123` | Compte manager pour validation |
-| Mécanicien | `mechanic@demo.com` | `role123` | Mécanicien mensuel (2500€) |
-| Mécanicien | `jean.dupont@garage.com` | `role123` | Mécanicien journalier (120€/jour) |
-| Mécanicien | `marie.martin@garage.com` | `role123` | Mécanicien mensuel (2800€) |
-| Mécanicien | `pierre.durand@garage.com` | `role123` | Mécanicien commission (25%) |
+| Client | `client@demo.com` | `client123` | Compte client de démonstration |
+| Manager | `manager@demo.com` | `manager123` | Compte manager pour validation |
+| Mécanicien | `mechanic@demo.com` | `mechanic123` | Mécanicien mensuel (2500€) |
+| Mécanicien | `jean.dupont@garage.com` | `mechanic123` | Mécanicien journalier (120€/jour) |
+| Mécanicien | `marie.martin@garage.com` | `mechanic123` | Mécanicien mensuel (2800€) |
+| Mécanicien | `pierre.durand@garage.com` | `mechanic123` | Mécanicien commission (25%) |
 
 ## 📝 Étapes de Déploiement
 
@@ -140,7 +140,7 @@ node test-backend-api.js
 
 ### 3. Test Manuel
 1. Ouvrir https://m1p15-bmean-niaina.vercel.app
-2. Se connecter avec `mechanic@demo.com / role123`
+2. Se connecter avec `mechanic@demo.com / mechanic123`
 3. Tester "Mes Jours de Travail"
 4. Tester "Mes Revenus"
 5. Se connecter en manager pour valider les déclarations

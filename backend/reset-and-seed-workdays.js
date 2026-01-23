@@ -35,13 +35,15 @@ async function resetAndSeedWorkdays() {
     
     // 2. CRÉER LES 4 UTILISATEURS DE BASE
     console.log('\n👥 Création des utilisateurs de base...');
-    const passwordHash = await bcrypt.hash('role123', 10);
+    const clientPasswordHash = await bcrypt.hash('client123', 10);
+    const mechanicPasswordHash = await bcrypt.hash('mechanic123', 10);
+    const managerPasswordHash = await bcrypt.hash('manager123', 10);
     
     const users = [
       {
         fullName: 'Client Démo',
         email: 'client@demo.com',
-        passwordHash,
+        passwordHash: clientPasswordHash,
         role: 'client',
         status: 'approved',
         phone: '+33 6 01 02 03 04',
@@ -62,7 +64,7 @@ async function resetAndSeedWorkdays() {
       {
         fullName: 'Mécanicien Démo',
         email: 'mechanic@demo.com',
-        passwordHash,
+        passwordHash: mechanicPasswordHash,
         role: 'mechanic',
         status: 'approved',
         phone: '+33 6 05 06 07 08',
@@ -87,7 +89,7 @@ async function resetAndSeedWorkdays() {
       {
         fullName: 'Manager Démo',
         email: 'manager@demo.com',
-        passwordHash,
+        passwordHash: managerPasswordHash,
         role: 'manager',
         status: 'approved',
         phone: '+33 6 09 10 11 12',
@@ -116,7 +118,7 @@ async function resetAndSeedWorkdays() {
       {
         fullName: 'Jean Dupont',
         email: 'jean.dupont@garage.com',
-        passwordHash,
+        passwordHash: mechanicPasswordHash,
         role: 'mechanic',
         status: 'approved',
         phone: '+33 6 20 21 22 23',
@@ -142,7 +144,7 @@ async function resetAndSeedWorkdays() {
       {
         fullName: 'Marie Martin',
         email: 'marie.martin@garage.com',
-        passwordHash,
+        passwordHash: mechanicPasswordHash,
         role: 'mechanic',
         status: 'approved',
         phone: '+33 6 24 25 26 27',
@@ -168,7 +170,7 @@ async function resetAndSeedWorkdays() {
       {
         fullName: 'Pierre Durand',
         email: 'pierre.durand@garage.com',
-        passwordHash,
+        passwordHash: mechanicPasswordHash,
         role: 'mechanic',
         status: 'approved',
         phone: '+33 6 28 29 30 31',
@@ -333,12 +335,12 @@ async function resetAndSeedWorkdays() {
     console.log(`   • Paramètres TVA: ${stats.vatSettings}`);
     
     console.log('\n🎯 COMPTES DE TEST:');
-    console.log('   • Client: client@demo.com / role123');
-    console.log('   • Mécanicien: mechanic@demo.com / role123');
-    console.log('   • Manager: manager@demo.com / role123');
-    console.log('   • Jean Dupont (journalier): jean.dupont@garage.com / role123');
-    console.log('   • Marie Martin (mensuel): marie.martin@garage.com / role123');
-    console.log('   • Pierre Durand (commission): pierre.durand@garage.com / role123');
+    console.log('   • Client: client@demo.com / client123');
+    console.log('   • Mécanicien: mechanic@demo.com / mechanic123');
+    console.log('   • Manager: manager@demo.com / manager123');
+    console.log('   • Jean Dupont (journalier): jean.dupont@garage.com / mechanic123');
+    console.log('   • Marie Martin (mensuel): marie.martin@garage.com / mechanic123');
+    console.log('   • Pierre Durand (commission): pierre.durand@garage.com / mechanic123');
     
     console.log('\n🧪 POUR TESTER LES NOUVELLES FONCTIONNALITÉS:');
     console.log('   1. Connectez-vous en tant que mécanicien');

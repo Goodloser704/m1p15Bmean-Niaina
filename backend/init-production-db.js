@@ -38,13 +38,15 @@ async function initProductionDB() {
       console.log('🔄 Initialisation des données...');
       
       // Créer les utilisateurs de base
-      const passwordHash = await bcrypt.hash('role123', 10);
+      const clientPasswordHash = await bcrypt.hash('client123', 10);
+      const mechanicPasswordHash = await bcrypt.hash('mechanic123', 10);
+      const managerPasswordHash = await bcrypt.hash('manager123', 10);
       
       const users = [
         {
           fullName: 'Client Démo',
           email: 'client@demo.com',
-          passwordHash,
+          passwordHash: clientPasswordHash,
           role: 'client',
           status: 'approved',
           phone: '+33 6 01 02 03 04',
@@ -65,7 +67,7 @@ async function initProductionDB() {
         {
           fullName: 'Manager Démo',
           email: 'manager@demo.com',
-          passwordHash,
+          passwordHash: managerPasswordHash,
           role: 'manager',
           status: 'approved',
           phone: '+33 6 09 10 11 12',
@@ -86,7 +88,7 @@ async function initProductionDB() {
         {
           fullName: 'Mécanicien Démo',
           email: 'mechanic@demo.com',
-          passwordHash,
+          passwordHash: mechanicPasswordHash,
           role: 'mechanic',
           status: 'approved',
           phone: '+33 6 05 06 07 08',
@@ -111,7 +113,7 @@ async function initProductionDB() {
         {
           fullName: 'Jean Dupont',
           email: 'jean.dupont@garage.com',
-          passwordHash,
+          passwordHash: mechanicPasswordHash,
           role: 'mechanic',
           status: 'approved',
           phone: '+33 6 20 21 22 23',
@@ -230,10 +232,10 @@ async function initProductionDB() {
     console.log(`   • Paramètres TVA: ${stats.vatSettings}`);
     
     console.log('\n🎯 COMPTES DE TEST:');
-    console.log('   • Client: client@demo.com / role123');
-    console.log('   • Manager: manager@demo.com / role123');
-    console.log('   • Mécanicien: mechanic@demo.com / role123');
-    console.log('   • Jean Dupont: jean.dupont@garage.com / role123');
+    console.log('   • Client: client@demo.com / client123');
+    console.log('   • Manager: manager@demo.com / manager123');
+    console.log('   • Mécanicien: mechanic@demo.com / mechanic123');
+    console.log('   • Jean Dupont: jean.dupont@garage.com / mechanic123');
     
     console.log('\n✅ Base de données production initialisée !');
     
