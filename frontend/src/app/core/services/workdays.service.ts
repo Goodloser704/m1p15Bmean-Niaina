@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { firstValueFrom } from 'rxjs';
 import { API_BASE_URL } from '../api.config';
 
 export interface WorkDay {
@@ -30,18 +31,18 @@ export interface WorkDayStats {
   providedIn: 'root'
 })
 export class WorkdaysService {
-  private readonly baseUrl = `${API_BASE_URL}/workdays`;
+  private readonly baseUrl = `${API_BASE_URL}/api/workdays`;
 
   constructor(private http: HttpClient) {}
 
   // Déclarer un jour de travail
   async declareWorkDay(date: string, hoursWorked: number = 8, notes?: string): Promise<{ message: string; workDay: WorkDay }> {
-    const response = await this.http.post<{ message: string; workDay: WorkDay }>(`${this.baseUrl}/declare`, {
+    const response = await firstValueFrom(this.http.post<{ message: string; workDay: WorkDay }>(`${this.baseUrl}/declare`, {
       date,
       hoursWorked,
       notes
-    }).toPromise();
-    return response!;
+    }));
+    return response;
   }
 
   // Déclarer plusieurs jours en une fois
@@ -50,7 +51,7 @@ export class WorkdaysService {
     results: WorkDay[];
     errors: Array<{ date: string; error: string }>;
   }> {
-    const response = await this.http.post<{
+    const response = await firstValueFrom(this.http.post<{
       message: string;
       results: WorkDay[];
       errors: Array<{ date: string; error: string }>;
@@ -58,30 +59,35 @@ export class WorkdaysService {
       dates,
       hoursWorked,
       notes
-    }).toPromise();
-    return response!;
+    }));
+    return response;
   }
 
   // Lister mes jours de travail
   async getMyWorkDays(month?: number, year?: number): Promise<WorkDay[]> {
-    let url = `${this.baseUrl}/my-workdays`;
-    const params = new URLSearchParams();
-    
-    if (month) params.append('month', month.toString());
-    if (year) params.append('year', year.toString());
-    
-    if (params.toString()) {
-      url += `?${params.toString()}`;
-    }
+    try {
+      let url = `${this.baseUrl}/my-workdays`;
+      const params = new URLSearchParams();
+      
+      if (month) params.append('month', month.toString());
+      if (year) params.append('year', year.toString());
+      
+      if (params.toString()) {
+        url += `?${params.toString()}`;
+      }
 
-    const response = await this.http.get<WorkDay[]>(url).toPromise();
-    return response!;
+      const response = await firstValueFrom(this.http.get<WorkDay[]>(url));
+      return response;
+    } catch (error) {
+      console.error('❌ WorkdaysService.getMyWorkDays error:', error);
+      throw error;
+    }
   }
 
   // Lister les déclarations en attente (manager)
   async getPendingWorkDays(): Promise<WorkDay[]> {
-    const response = await this.http.get<WorkDay[]>(`${this.baseUrl}/pending`).toPromise();
-    return response!;
+    const response = await firstValueFrom(this.http.get<WorkDay[]>(`${this.baseUrl}/pending`));
+    return response;
   }
 
   // Approuver/rejeter une déclaration (manager)
@@ -89,14 +95,14 @@ export class WorkdaysService {
     message: string;
     workDay: WorkDay;
   }> {
-    const response = await this.http.put<{
+    const response = await firstValueFrom(this.http.put<{
       message: string;
       workDay: WorkDay;
     }>(`${this.baseUrl}/${workDayId}/approve`, {
       action,
       rejectionReason
-    }).toPromise();
-    return response!;
+    }));
+    return response;
   }
 
   // Obtenir les statistiques de travail
@@ -111,8 +117,8 @@ export class WorkdaysService {
       url += `?${params.toString()}`;
     }
 
-    const response = await this.http.get<WorkDayStats>(url).toPromise();
-    return response!;
+    const response = await firstValueFrom(this.http.get<WorkDayStats>(url));
+    return response;
   }
 
   // Utilitaires pour les dates

@@ -589,8 +589,8 @@ export class MechanicWorkdaysPageComponent {
       
       this.workDays.set(workDays);
     } catch (error: any) {
+      console.error('❌ MechanicWorkdaysPage.loadWorkDays error:', error);
       this.error.set('Erreur lors du chargement des jours de travail');
-      console.error('Error loading work days:', error);
     } finally {
       this.loading.set(false);
     }
