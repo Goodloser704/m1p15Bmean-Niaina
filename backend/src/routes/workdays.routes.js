@@ -1,11 +1,11 @@
 const express = require('express');
 const WorkDay = require('../models/WorkDay');
 const User = require('../models/User');
-const auth = require('../middleware/auth');
+const { requireAuth } = require('../middleware/auth');
 const router = express.Router();
 
 // Déclarer un jour de travail (mécanicien)
-router.post('/declare', auth, async (req, res) => {
+router.post('/declare', requireAuth, async (req, res) => {
   try {
     const { date, hoursWorked, notes } = req.body;
     const mechanicId = req.user.id;
@@ -79,7 +79,7 @@ router.post('/declare', auth, async (req, res) => {
 });
 
 // Lister les jours de travail d'un mécanicien
-router.get('/my-workdays', auth, async (req, res) => {
+router.get('/my-workdays', requireAuth, async (req, res) => {
   try {
     const { month, year } = req.query;
     const mechanicId = req.user.id;
@@ -118,7 +118,7 @@ router.get('/my-workdays', auth, async (req, res) => {
 });
 
 // Lister les déclarations en attente (manager)
-router.get('/pending', auth, async (req, res) => {
+router.get('/pending', requireAuth, async (req, res) => {
   try {
     // Vérifier que l'utilisateur est un manager
     if (req.user.role !== 'manager') {
@@ -138,7 +138,7 @@ router.get('/pending', auth, async (req, res) => {
 });
 
 // Approuver/rejeter une déclaration (manager)
-router.put('/:id/approve', auth, async (req, res) => {
+router.put('/:id/approve', requireAuth, async (req, res) => {
   try {
     const { id } = req.params;
     const { action, rejectionReason } = req.body; // action: 'approve' ou 'reject'
@@ -184,7 +184,7 @@ router.put('/:id/approve', auth, async (req, res) => {
 });
 
 // Obtenir les statistiques de travail d'un mécanicien
-router.get('/stats/:mechanicId', auth, async (req, res) => {
+router.get('/stats/:mechanicId', requireAuth, async (req, res) => {
   try {
     const { mechanicId } = req.params;
     const { startDate, endDate } = req.query;
@@ -216,7 +216,7 @@ router.get('/stats/:mechanicId', auth, async (req, res) => {
 });
 
 // Déclarer plusieurs jours en une fois (mécanicien)
-router.post('/declare-multiple', auth, async (req, res) => {
+router.post('/declare-multiple', requireAuth, async (req, res) => {
   try {
     const { dates, hoursWorked, notes } = req.body; // dates est un array
     const mechanicId = req.user.id;
