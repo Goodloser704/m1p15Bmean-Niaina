@@ -13,6 +13,7 @@ import { MechanicWorkOrdersEnhancedPageComponent } from './pages/mechanic/mechan
 import { MechanicEarningsPageComponent } from './pages/mechanic/mechanic-earnings.page';
 import { MechanicNearbyClientsPageComponent } from './pages/mechanic/mechanic-nearby-clients.page';
 import { MechanicToolsPageComponent } from './pages/mechanic/mechanic-tools.page';
+import { MechanicWorkdaysPageComponent } from './pages/mechanic/mechanic-workdays.page';
 import { ManagerAppointmentsPageComponent } from './pages/manager/manager-appointments.page';
 import { ManagerWorkOrdersPageComponent } from './pages/manager/manager-workorders.page';
 import { ManagerVehiclesPageComponent } from './pages/manager/manager-vehicles.page';
@@ -21,6 +22,7 @@ import { ManagerInvoicesPageComponent } from './pages/manager/manager-invoices.p
 import { ManagerVatSettingsPageComponent } from './pages/manager/manager-vat-settings.page';
 import { ManagerNearbyClientsPageComponent } from './pages/manager/manager-nearby-clients.page';
 import { ManagerToolsPageComponent } from './pages/manager/manager-tools.page';
+import { ManagerWorkdaysPageComponent } from './pages/manager/manager-workdays.page';
 
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
@@ -45,6 +47,7 @@ export const routes: Routes = [
       { path: '', pathMatch: 'full', redirectTo: 'workorders' },
       { path: 'workorders', component: MechanicWorkOrdersEnhancedPageComponent },
       { path: 'tools', component: MechanicToolsPageComponent },
+      { path: 'workdays', component: MechanicWorkdaysPageComponent },
       { path: 'earnings', component: MechanicEarningsPageComponent },
       { path: 'nearby-clients', component: MechanicNearbyClientsPageComponent }
     ]
@@ -58,6 +61,7 @@ export const routes: Routes = [
       { path: 'workorders', component: ManagerWorkOrdersPageComponent },
       { path: 'vehicles', component: ManagerVehiclesPageComponent },
       { path: 'tools', component: ManagerToolsPageComponent },
+      { path: 'workdays', component: ManagerWorkdaysPageComponent },
       { path: 'registrations', component: ManagerRegistrationsPageComponent },
       { path: 'invoices', component: ManagerInvoicesPageComponent },
       { path: 'vat-settings', component: ManagerVatSettingsPageComponent },

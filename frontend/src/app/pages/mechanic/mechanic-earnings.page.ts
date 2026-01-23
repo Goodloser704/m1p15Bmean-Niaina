@@ -1,5 +1,6 @@
 import { Component, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { WorkOrdersService } from '../../core/services/workorders.service';
 import { AppointmentsService } from '../../core/services/appointments.service';
 import { AuthService } from '../../core/auth/auth.service';
@@ -18,7 +19,7 @@ interface EarningDetail {
 @Component({
   standalone: true,
   selector: 'app-mechanic-earnings-page',
-  imports: [CommonModule],
+  imports: [CommonModule, RouterLink],
   template: `
     <div class="page-mechanic-theme">
       <div class="wrap">
@@ -60,6 +61,66 @@ interface EarningDetail {
               <div class="amount">{{ completedRepairs() }}</div>
               <div class="subtitle">Terminées et payées</div>
             </div>
+          </div>
+        </div>
+
+        <!-- Détail mensuel des salaires -->
+        <div class="card" *ngIf="contractType() !== 'commission'">
+          <h3>📅 Détail Mensuel des Salaires</h3>
+          
+          <div class="calculation-method-info">
+            <div class="method-badge" [class.declared]="hasWorkDayDeclarations()">
+              {{ hasWorkDayDeclarations() ? '✅ Basé sur vos déclarations' : '📊 Calcul théorique' }}
+            </div>
+            <p *ngIf="!hasWorkDayDeclarations()" class="method-note">
+              💡 <strong>Astuce :</strong> Déclarez vos jours de travail dans 
+              <a routerLink="/mechanic/workdays" class="link">📅 Mes Jours de Travail</a> 
+              pour un calcul précis de votre salaire !
+            </p>
+          </div>
+          
+          <div class="monthly-breakdown">
+            <div class="breakdown-header">
+              <div class="month-col">Mois</div>
+              <div class="days-col">Jours Ouvrés</div>
+              <div class="base-col">Salaire Base</div>
+              <div class="comm-col">Commissions</div>
+              <div class="total-col">Total</div>
+            </div>
+            
+            <div class="breakdown-row" *ngFor="let month of monthlyBreakdown()">
+              <div class="month-col">
+                {{ month.name }}
+                <div class="calculation-indicator" *ngIf="month.calculationMethod">
+                  <span *ngIf="month.calculationMethod === 'declared_days'" class="declared-indicator">📋 Déclaré</span>
+                  <span *ngIf="month.calculationMethod === 'theoretical_days'" class="theoretical-indicator">📊 Théorique</span>
+                </div>
+              </div>
+              <div class="days-col">{{ month.workingDays }}</div>
+              <div class="base-col">{{ month.baseSalary }}€</div>
+              <div class="comm-col">{{ month.commissions }}€</div>
+              <div class="total-col">{{ month.total }}€</div>
+            </div>
+            
+            <div class="breakdown-footer">
+              <div class="month-col"><strong>TOTAL</strong></div>
+              <div class="days-col">{{ totalWorkingDays() }}</div>
+              <div class="base-col"><strong>{{ totalBaseSalaryBreakdown() }}€</strong></div>
+              <div class="comm-col"><strong>{{ totalCommissions() }}€</strong></div>
+              <div class="total-col"><strong>{{ totalEarnings() }}€</strong></div>
+            </div>
+          </div>
+          
+          <div class="calculation-note">
+            <p><strong>💡 Note sur le calcul :</strong></p>
+            <ul>
+              <li *ngIf="contractType() === 'monthly'">Salaire mensuel proratisé selon les jours ouvrés réels (hors weekends et jours fériés)</li>
+              <li *ngIf="contractType() === 'daily'">Salaire journalier × nombre de jours ouvrés dans le mois</li>
+              <li>Les mois partiels (embauche/départ) sont calculés au prorata</li>
+              <li>Les commissions s'ajoutent au salaire de base</li>
+              <li *ngIf="hasWorkDayDeclarations()">✅ Calcul basé sur vos déclarations de présence approuvées</li>
+              <li *ngIf="!hasWorkDayDeclarations()">📊 Calcul théorique - déclarez vos jours pour plus de précision</li>
+            </ul>
           </div>
         </div>
 
@@ -132,6 +193,18 @@ interface EarningDetail {
             <div class="detail-row">
               <span class="label">Membre depuis :</span>
               <span class="value">{{ memberSince() | date:'longDate' }}</span>
+            </div>
+            <div class="detail-row" *ngIf="contractType() === 'monthly'">
+              <span class="label">Calcul salaire :</span>
+              <span class="value">Salaire mensuel fixe + commissions variables</span>
+            </div>
+            <div class="detail-row" *ngIf="contractType() === 'daily'">
+              <span class="label">Calcul salaire :</span>
+              <span class="value">Salaire journalier × jours ouvrés + commissions</span>
+            </div>
+            <div class="detail-row" *ngIf="contractType() === 'commission'">
+              <span class="label">Calcul salaire :</span>
+              <span class="value">Commissions uniquement ({{ commissionRate() }}% du CA)</span>
             </div>
           </div>
         </div>
@@ -315,9 +388,191 @@ interface EarningDetail {
       font-weight: 700;
     }
 
+    .calculation-method-info {
+      margin-bottom: 20px;
+      padding: 16px;
+      border-radius: 8px;
+      background: rgba(52, 152, 219, 0.1);
+      border-left: 4px solid #3498db;
+    }
+
+    .method-badge {
+      display: inline-block;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-weight: 600;
+      font-size: 14px;
+      margin-bottom: 12px;
+      background: rgba(149, 165, 166, 0.2);
+      color: #95a5a6;
+      border: 2px solid #95a5a6;
+    }
+
+    .method-badge.declared {
+      background: rgba(39, 174, 96, 0.2);
+      color: #27ae60;
+      border-color: #27ae60;
+    }
+
+    .method-note {
+      margin: 0;
+      color: #ecf0f1;
+      font-size: 14px;
+    }
+
+    .method-note .link {
+      color: #3498db;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .method-note .link:hover {
+      text-decoration: underline;
+    }
+
+    .calculation-indicator {
+      font-size: 10px;
+      margin-top: 4px;
+    }
+
+    .declared-indicator {
+      color: #27ae60;
+      font-weight: 600;
+    }
+
+    .theoretical-indicator {
+      color: #95a5a6;
+      font-weight: 600;
+    }
+
+    .monthly-breakdown {
+      margin-top: 16px;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid #34495e;
+    }
+
+    .breakdown-header,
+    .breakdown-row,
+    .breakdown-footer {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+      gap: 16px;
+      padding: 12px 16px;
+      align-items: center;
+    }
+
+    .breakdown-header {
+      background: linear-gradient(135deg, #e67e22, #f39c12);
+      color: white;
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 12px;
+      letter-spacing: 1px;
+    }
+
+    .breakdown-row {
+      background: rgba(52, 73, 94, 0.3);
+      border-bottom: 1px solid #34495e;
+      color: #ecf0f1;
+    }
+
+    .breakdown-row:hover {
+      background: rgba(230, 126, 34, 0.1);
+    }
+
+    .breakdown-footer {
+      background: rgba(230, 126, 34, 0.2);
+      color: #ffffff;
+      font-weight: 700;
+      border-top: 2px solid #e67e22;
+    }
+
+    .month-col {
+      font-weight: 600;
+    }
+
+    .days-col,
+    .base-col,
+    .comm-col,
+    .total-col {
+      text-align: right;
+      font-family: 'Courier New', monospace;
+    }
+
+    .base-col {
+      color: #3498db;
+    }
+
+    .comm-col {
+      color: #27ae60;
+    }
+
+    .total-col {
+      color: #e67e22;
+      font-weight: 600;
+    }
+
+    .calculation-note {
+      margin-top: 20px;
+      padding: 16px;
+      background: rgba(52, 152, 219, 0.1);
+      border-left: 4px solid #3498db;
+      border-radius: 4px;
+    }
+
+    .calculation-note p {
+      margin: 0 0 12px 0;
+      color: #3498db;
+      font-weight: 600;
+    }
+
+    .calculation-note ul {
+      margin: 0;
+      padding-left: 20px;
+      color: #ecf0f1;
+    }
+
+    .calculation-note li {
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+
     @keyframes scanLine {
       0% { left: -100%; }
       100% { left: 100%; }
+    }
+
+    /* Responsive pour mobile */
+    @media (max-width: 768px) {
+      .breakdown-header,
+      .breakdown-row,
+      .breakdown-footer {
+        grid-template-columns: 1fr;
+        gap: 8px;
+        text-align: left;
+      }
+
+      .breakdown-header > div,
+      .breakdown-row > div,
+      .breakdown-footer > div {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .breakdown-header > div::before,
+      .breakdown-row > div::before,
+      .breakdown-footer > div::before {
+        content: attr(data-label);
+        font-weight: 600;
+        color: #bdc3c7;
+      }
+
+      .days-col::before { content: "Jours: "; }
+      .base-col::before { content: "Base: "; }
+      .comm-col::before { content: "Comm: "; }
+      .total-col::before { content: "Total: "; }
     }
   `]
 })
@@ -397,21 +652,206 @@ export class MechanicEarningsPageComponent {
     ) / 100;
   });
 
+  // Détail mensuel des salaires
+  monthlyBreakdown = computed(() => {
+    const contractType = this.contractType();
+    const baseSalary = this.baseSalary();
+    
+    if (contractType === 'commission') {
+      return [];
+    }
+    
+    const memberSinceDate = new Date(this.memberSince());
+    const now = new Date();
+    const breakdown: any[] = [];
+    
+    // Grouper les commissions par mois
+    const monthlyCommissions: Record<string, number> = {};
+    this.earningDetails().forEach(detail => {
+      const date = new Date(detail.repairDate);
+      const monthKey = `${date.getFullYear()}-${date.getMonth()}`;
+      monthlyCommissions[monthKey] = (monthlyCommissions[monthKey] || 0) + detail.commission;
+    });
+    
+    // Calculer mois par mois depuis l'inscription
+    let currentDate = new Date(memberSinceDate.getFullYear(), memberSinceDate.getMonth(), 1);
+    const endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    
+    while (currentDate <= endDate) {
+      const year = currentDate.getFullYear();
+      const month = currentDate.getMonth();
+      const monthKey = `${year}-${month}`;
+      const isFirstMonth = year === memberSinceDate.getFullYear() && month === memberSinceDate.getMonth();
+      const isLastMonth = year === now.getFullYear() && month === now.getMonth();
+      
+      const workingDaysInMonth = this.getWorkingDaysInMonth(year, month);
+      let monthBaseSalary = 0;
+      let actualWorkedDays = workingDaysInMonth;
+      
+      if (contractType === 'monthly') {
+        if (isFirstMonth && memberSinceDate.getDate() > 1) {
+          // Mois partiel (embauche en cours de mois)
+          const totalDaysInMonth = new Date(year, month + 1, 0).getDate();
+          const workedDays = totalDaysInMonth - memberSinceDate.getDate() + 1;
+          actualWorkedDays = Math.round((workedDays / totalDaysInMonth) * workingDaysInMonth);
+          monthBaseSalary = (baseSalary / workingDaysInMonth) * actualWorkedDays;
+        } else if (isLastMonth && now.getDate() < new Date(year, month + 1, 0).getDate()) {
+          // Mois partiel (calcul jusqu'à une date précise)
+          actualWorkedDays = Math.round((now.getDate() / new Date(year, month + 1, 0).getDate()) * workingDaysInMonth);
+          monthBaseSalary = (baseSalary / workingDaysInMonth) * actualWorkedDays;
+        } else {
+          // Mois complet
+          monthBaseSalary = baseSalary;
+        }
+      } else if (contractType === 'daily') {
+        if (isFirstMonth && memberSinceDate.getDate() > 1) {
+          const totalDaysInMonth = new Date(year, month + 1, 0).getDate();
+          const workedDays = totalDaysInMonth - memberSinceDate.getDate() + 1;
+          actualWorkedDays = Math.round((workedDays / totalDaysInMonth) * workingDaysInMonth);
+        } else if (isLastMonth && now.getDate() < new Date(year, month + 1, 0).getDate()) {
+          const totalDaysInMonth = new Date(year, month + 1, 0).getDate();
+          actualWorkedDays = Math.round((now.getDate() / totalDaysInMonth) * workingDaysInMonth);
+        }
+        
+        monthBaseSalary = baseSalary * actualWorkedDays;
+      }
+      
+      const monthCommissions = monthlyCommissions[monthKey] || 0;
+      
+      breakdown.push({
+        name: currentDate.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }),
+        workingDays: actualWorkedDays,
+        baseSalary: Math.round(monthBaseSalary * 100) / 100,
+        commissions: Math.round(monthCommissions * 100) / 100,
+        total: Math.round((monthBaseSalary + monthCommissions) * 100) / 100
+      });
+      
+      // Passer au mois suivant
+      currentDate.setMonth(currentDate.getMonth() + 1);
+    }
+    
+    return breakdown.reverse(); // Plus récent en premier
+  });
+
+  totalWorkingDays = computed(() => {
+    return this.monthlyBreakdown().reduce((sum, month) => sum + month.workingDays, 0);
+  });
+
+  totalBaseSalaryBreakdown = computed(() => {
+    return Math.round(this.monthlyBreakdown().reduce((sum, month) => sum + month.baseSalary, 0) * 100) / 100;
+  });
+
+  // Vérifier si on a des déclarations de jours de travail
+  hasWorkDayDeclarations = computed(() => {
+    // Pour l'instant, on simule - dans une vraie implémentation, 
+    // on vérifierait s'il y a des WorkDay approuvés pour ce mécanicien
+    return false; // TODO: implémenter la vérification réelle
+  });
+
   completedRepairs = computed(() => this.earningDetails().length);
 
+  // Calcul précis des revenus totaux
   totalEarnings = computed(() => {
-    // Pour un contrat mensuel ou journalier, on ajoute le salaire de base
-    // Note: Ici on affiche juste le salaire mensuel + commissions
-    // Dans une vraie app, il faudrait calculer le nombre de mois/jours travaillés
     const commissions = this.totalCommissions();
+    const contractType = this.contractType();
+    const baseSalary = this.baseSalary();
     
-    if (this.contractType() === 'commission') {
+    if (contractType === 'commission') {
       return commissions;
     }
     
-    // Pour simplifier, on affiche salaire mensuel + commissions
-    return Math.round((this.baseSalary() + commissions) * 100) / 100;
+    // Calcul précis basé sur les jours ouvrés réels
+    const memberSinceDate = new Date(this.memberSince());
+    const now = new Date();
+    
+    let totalBaseSalary = 0;
+    
+    // Calculer mois par mois depuis l'inscription
+    let currentDate = new Date(memberSinceDate.getFullYear(), memberSinceDate.getMonth(), 1);
+    const endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    
+    while (currentDate <= endDate) {
+      const year = currentDate.getFullYear();
+      const month = currentDate.getMonth();
+      const isFirstMonth = year === memberSinceDate.getFullYear() && month === memberSinceDate.getMonth();
+      const isLastMonth = year === now.getFullYear() && month === now.getMonth();
+      
+      if (contractType === 'monthly') {
+        if (isFirstMonth && memberSinceDate.getDate() > 1) {
+          // Mois partiel (embauche en cours de mois)
+          const totalDaysInMonth = new Date(year, month + 1, 0).getDate();
+          const workedDays = totalDaysInMonth - memberSinceDate.getDate() + 1;
+          const workingDaysInMonth = this.getWorkingDaysInMonth(year, month);
+          const actualWorkedDays = Math.round((workedDays / totalDaysInMonth) * workingDaysInMonth);
+          totalBaseSalary += (baseSalary / workingDaysInMonth) * actualWorkedDays;
+        } else if (isLastMonth && now.getDate() < new Date(year, month + 1, 0).getDate()) {
+          // Mois partiel (calcul jusqu'à une date précise)
+          const workingDaysInMonth = this.getWorkingDaysInMonth(year, month);
+          const workedDays = Math.round((now.getDate() / new Date(year, month + 1, 0).getDate()) * workingDaysInMonth);
+          totalBaseSalary += (baseSalary / workingDaysInMonth) * workedDays;
+        } else {
+          // Mois complet
+          totalBaseSalary += baseSalary;
+        }
+      } else if (contractType === 'daily') {
+        const workingDaysInMonth = this.getWorkingDaysInMonth(year, month);
+        let actualWorkedDays = workingDaysInMonth;
+        
+        if (isFirstMonth && memberSinceDate.getDate() > 1) {
+          const totalDaysInMonth = new Date(year, month + 1, 0).getDate();
+          const workedDays = totalDaysInMonth - memberSinceDate.getDate() + 1;
+          actualWorkedDays = Math.round((workedDays / totalDaysInMonth) * workingDaysInMonth);
+        } else if (isLastMonth && now.getDate() < new Date(year, month + 1, 0).getDate()) {
+          const totalDaysInMonth = new Date(year, month + 1, 0).getDate();
+          actualWorkedDays = Math.round((now.getDate() / totalDaysInMonth) * workingDaysInMonth);
+        }
+        
+        totalBaseSalary += baseSalary * actualWorkedDays;
+      }
+      
+      // Passer au mois suivant
+      currentDate.setMonth(currentDate.getMonth() + 1);
+    }
+    
+    return Math.round((totalBaseSalary + commissions) * 100) / 100;
   });
+
+  // Méthode helper pour calculer les jours ouvrés dans un mois
+  private getWorkingDaysInMonth(year: number, month: number): number {
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    
+    // Jours fériés fixes (approximation)
+    const publicHolidays = [
+      new Date(year, 0, 1),   // Nouvel An
+      new Date(year, 4, 1),   // Fête du Travail
+      new Date(year, 4, 8),   // Victoire 1945
+      new Date(year, 6, 14),  // Fête Nationale
+      new Date(year, 7, 15),  // Assomption
+      new Date(year, 10, 1),  // Toussaint
+      new Date(year, 10, 11), // Armistice
+      new Date(year, 11, 25), // Noël
+    ];
+    
+    let workingDays = 0;
+    let currentDate = new Date(firstDay);
+    
+    while (currentDate <= lastDay) {
+      const dayOfWeek = currentDate.getDay();
+      const isWeekend = dayOfWeek === 0 || dayOfWeek === 6; // Dimanche = 0, Samedi = 6
+      const isPublicHoliday = publicHolidays.some(holiday => 
+        holiday.getTime() === currentDate.getTime()
+      );
+      
+      if (!isWeekend && !isPublicHoliday) {
+        workingDays++;
+      }
+      
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+    
+    return workingDays;
+  }
 
   constructor(
     private workOrdersService: WorkOrdersService,

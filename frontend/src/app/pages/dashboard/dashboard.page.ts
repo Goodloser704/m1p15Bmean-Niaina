@@ -66,6 +66,11 @@ import type { WorkOrder } from '../../core/models';
             <p>Géolocalisation et navigation</p>
           </a>
 
+          <a class="mechanic-card mechanic-btn mechanic-btn-info" *ngIf="u.role === 'mechanic'" routerLink="/mechanic/workdays">
+            <h3>📅 Mes Jours de Travail</h3>
+            <p>Déclarer ma présence</p>
+          </a>
+
           <a class="mechanic-card mechanic-btn" *ngIf="u.role === 'manager'" routerLink="/manager/appointments">
             <h3>📋 Gestion Rendez-vous</h3>
             <p>Planification et assignation</p>
@@ -99,6 +104,11 @@ import type { WorkOrder } from '../../core/models';
           <a class="mechanic-card mechanic-btn" *ngIf="u.role === 'manager'" routerLink="/manager/nearby-clients">
             <h3>🗺️ Clients Proches</h3>
             <p>Géolocalisation et assignation</p>
+          </a>
+
+          <a class="mechanic-card mechanic-btn mechanic-btn-info" *ngIf="u.role === 'manager'" routerLink="/manager/workdays">
+            <h3>📅 Validation Présence</h3>
+            <p>Approuver les jours de travail</p>
           </a>
         </div>
       </div>
